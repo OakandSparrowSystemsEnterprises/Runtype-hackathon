@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import json
 import os
 import time
@@ -9,13 +10,60 @@ DATA_DIR = Path(os.environ.get("ARTIFACT_DATA_DIR", "/data"))
 OBJECT_DIR = DATA_DIR / "objects"
 META_DIR = DATA_DIR / "metadata"
 MAX_BYTES = int(os.environ.get("ARTIFACT_MAX_BYTES", 10 * 1024 * 1024))
+AUTH_MAX_SKEW_SECONDS = int(os.environ.get("AGENT_AUTH_MAX_SKEW_SECONDS", "300"))
+
+try:
+    AGENT_KEYS = json.loads(os.environ.get("GATEKEEPER_AGENT_KEYS_JSON", "{}"))
+except json.JSONDecodeError:
+    raise RuntimeError("GATEKEEPER_AGENT_KEYS_JSON must be valid JSON")
 
 OBJECT_DIR.mkdir(parents=True, exist_ok=True)
 META_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def verify_agent(headers, digest):
+    agent_id = headers.get("X-Agent-Id")
+    timestamp_raw = headers.get("X-Agent-Timestamp")
+    signature = headers.get("X-Agent-Signature")
+
+    if not agent_id or not timestamp_raw or not signature:
+        return None, "missing_agent_auth"
+
+    secret = AGENT_KEYS.get(agent_id)
+
+    if not secret:
+        return None, "unknown_agent"
+
+    try:
+        timestamp = int(timestamp_raw)
+    except ValueError:
+        return None, "invalid_agent_timestamp"
+
+    now = int(time.time())
+
+    if abs(now - timestamp) > AUTH_MAX_SKEW_SECONDS:
+        return None, "stale_agent_auth"
+
+    canonical = f"{agent_id}\n{timestamp_raw}\n{digest}".encode("utf-8")
+
+    expected = hmac.new(
+        secret.encode("utf-8"),
+        canonical,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected, signature.lower()):
+        return None, "invalid_agent_signature"
+
+    return {
+        "principal": agent_id,
+        "verification": "hmac-sha256",
+        "bound_sha256": digest
+    }, None
+
+
 class ArtifactHandler(BaseHTTPRequestHandler):
-    server_version = "GatekeeperArtifactBoundary/0.1"
+    server_version = "GatekeeperArtifactBoundary/0.2"
 
     def send_json(self, status, payload):
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
@@ -29,7 +77,8 @@ class ArtifactHandler(BaseHTTPRequestHandler):
         if self.path == "/health":
             return self.send_json(200, {
                 "status": "ok",
-                "service": "gatekeeper-universal-artifact-boundary"
+                "service": "gatekeeper-universal-artifact-boundary",
+                "agent_auth": "hmac-sha256"
             })
 
         if self.path.startswith("/api/v2/artifacts/"):
@@ -73,9 +122,18 @@ class ArtifactHandler(BaseHTTPRequestHandler):
         if len(raw) != length:
             return self.send_json(400, {"error": "incomplete_artifact"})
 
-        # Identity is established from the original bytes before interpretation.
+        # Establish artifact identity from the exact original bytes first.
         digest = hashlib.sha256(raw).hexdigest()
         artifact_ref = f"sha256:{digest}"
+
+        # Authentication is bound to that exact byte identity.
+        identity, auth_error = verify_agent(self.headers, digest)
+
+        if auth_error:
+            return self.send_json(401, {
+                "error": auth_error,
+                "artifact_sha256": digest
+            })
 
         object_path = OBJECT_DIR / digest
         meta_path = META_DIR / f"{digest}.json"
@@ -86,10 +144,12 @@ class ArtifactHandler(BaseHTTPRequestHandler):
             temp_path.replace(object_path)
 
         now_ms = int(time.time() * 1000)
+
         observation = {
             "observed_unix_ms": now_ms,
             "mime_declared": self.headers.get("Content-Type"),
-            "parent_artifact_ref": self.headers.get("X-Artifact-Parent")
+            "parent_artifact_ref": self.headers.get("X-Artifact-Parent"),
+            "identity": identity
         }
 
         if not meta_path.exists():
@@ -100,10 +160,7 @@ class ArtifactHandler(BaseHTTPRequestHandler):
                 "mime_declared": self.headers.get("Content-Type"),
                 "mime_detected": None,
                 "parent_artifact_ref": self.headers.get("X-Artifact-Parent"),
-                "identity": {
-                    "principal": None,
-                    "verification": "not-yet-bound"
-                },
+                "identity": identity,
                 "created_unix_ms": now_ms,
                 "observations": [observation],
                 "authority": {
@@ -114,11 +171,7 @@ class ArtifactHandler(BaseHTTPRequestHandler):
             metadata = json.loads(meta_path.read_text(encoding="utf-8"))
 
             if "observations" not in metadata:
-                metadata["observations"] = [{
-                    "observed_unix_ms": metadata.get("created_unix_ms"),
-                    "mime_declared": metadata.get("mime_declared"),
-                    "parent_artifact_ref": metadata.get("parent_artifact_ref")
-                }]
+                metadata["observations"] = []
 
             metadata["observations"].append(observation)
 
@@ -142,5 +195,3 @@ if __name__ == "__main__":
     server = ThreadingHTTPServer(("0.0.0.0", port), ArtifactHandler)
     print(f"Universal Artifact Boundary listening on :{port}", flush=True)
     server.serve_forever()
-
-
