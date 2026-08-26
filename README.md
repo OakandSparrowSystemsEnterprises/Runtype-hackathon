@@ -102,7 +102,7 @@ The hackathon integration communicates with Gatekeeper V2 through a controlled A
 
 ## License boundary
 
-The MIT License in this repository applies only to the contents of `Runtype-hackathon` that are distributed under that license. It does not grant any license to Gatekeeper V2, Oak & Sparrow Systems Enterprise proprietary source code, policy corpora, patents, trade secrets, customer materials, or other software and intellectual property not contained in this repository.
+The Apache License 2.0 in this repository applies only to the contents of `Runtype-hackathon` that are distributed under that license. It does not grant a license to Gatekeeper V2, Oak & Sparrow Systems Enterprise proprietary source code, policy corpora, customer materials, trade secrets, or other software and intellectual property not contained in this repository, except to the extent any rights are expressly granted by a separate written license.
 
 ## Organization
 
