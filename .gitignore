@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Build output
+dist/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets/
+credentials/
+
+# Runtime artifacts and local stores
+artifacts/
+data/
+.state/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+
+# IDE / editor
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Test/cache tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Local package/config state
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local hackathon credentials / generated access material
+.cotal/
+.immersive-commons/
+*.token
+*.secret
