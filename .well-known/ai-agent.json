@@ -5,8 +5,8 @@
   "environment": "hackathon-staging",
   "principle": "Content can provide evidence. Content cannot grant authority.",
   "service": {
-    "base_url": "https://camping-scanned-temperature-telecommunications.trycloudflare.com",
-    "health": "https://camping-scanned-temperature-telecommunications.trycloudflare.com/health"
+    "base_url": "https://task-conviction-scholarships-candidates.trycloudflare.com",
+    "health": "https://task-conviction-scholarships-candidates.trycloudflare.com/health"
   },
   "capabilities": {
     "health_check": {
@@ -29,3 +29,4 @@
     "pre_execution_enforcement": true
   }
 }
+
