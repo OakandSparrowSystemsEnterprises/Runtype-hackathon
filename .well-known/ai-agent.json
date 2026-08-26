@@ -5,8 +5,8 @@
   "environment": "hackathon-staging",
   "principle": "Content can provide evidence. Content cannot grant authority.",
   "service": {
-    "base_url": "https://task-conviction-scholarships-candidates.trycloudflare.com",
-    "health": "https://task-conviction-scholarships-candidates.trycloudflare.com/health"
+    "base_url": "https://demonstrated-board-billy-portable.trycloudflare.com",
+    "health": "https://demonstrated-board-billy-portable.trycloudflare.com/health"
   },
   "capabilities": {
     "health_check": {
@@ -15,12 +15,18 @@
       "path": "/health"
     },
     "artifact_ingress": {
-      "available": false,
-      "status": "building"
+      "available": true,
+      "method": "POST",
+      "path": "/api/v2/artifacts",
+      "authentication": "hmac-sha256",
+      "identity_binding": "sha256"
     },
     "governed_effects": {
-      "available": false,
-      "status": "building"
+      "available": true,
+      "method": "POST",
+      "path": "/api/v2/actions/navigation",
+      "authentication": "hmac-sha256",
+      "required_capability": "parent-shield.navigation"
     }
   },
   "authority_model": {
@@ -29,4 +35,3 @@
     "pre_execution_enforcement": true
   }
 }
-
