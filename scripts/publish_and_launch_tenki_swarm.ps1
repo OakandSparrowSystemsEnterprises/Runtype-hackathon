@@ -98,8 +98,14 @@ $env:TENKI_IMAGE_REF = $ImageRef
 $env:TENKI_WORKSPACE_NAME = $resolvedWorkspace
 $env:TENKI_SWARM_WIDTH = [string]$Width
 
-Write-Host "Launching $Width sticky Tenki workers from published image $ImageRef..."
-& (Join-Path $PSScriptRoot "launch_tenki_swarm.ps1") -Width $Width -ImageRef $ImageRef -Sticky
+Write-Host "Launching $Width fresh sticky Tenki workers from published image $ImageRef..."
+& (Join-Path $PSScriptRoot "launch_tenki_swarm.ps1") `
+    -Width $Width `
+    -ImageRef $ImageRef `
+    -Sticky `
+    -NoAutoDiscover `
+    -WslDistribution $WslDistribution `
+    -TenkiCli $TenkiCli
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
