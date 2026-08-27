@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gatekeeper V2 Governance Arena</title>
+<style>
+:root{--bg:#05070b;--panel:#0b1018;--panel2:#101923;--line:#203047;--text:#edf5ff;--muted:#8393a7;--green:#5cff9d;--red:#ff6674;--cyan:#58e8ff;--amber:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,rgba(70,135,210,.2),transparent 35%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}.shell{max-width:1550px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:17px}.eyebrow{font-size:10px;color:var(--cyan);font-weight:900;letter-spacing:.18em}.top h1{margin:5px 0 0;font-size:30px}.top p{margin:6px 0 0;color:var(--muted)}.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.chip{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:9px;font-weight:900;letter-spacing:.08em;color:var(--muted)}.chip.live{color:var(--green);border-color:rgba(92,255,157,.45);background:rgba(92,255,157,.05)}.chip.pending{color:var(--amber);border-color:rgba(255,209,102,.35)}.hero{margin:17px 0;padding:18px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));display:flex;justify-content:space-between;align-items:center;gap:18px}.hero h2{margin:0;font-size:24px}.hero strong{color:var(--green)}.hero p{margin:7px 0 0;color:var(--muted);max-width:980px}.status{font-size:11px;color:var(--muted);margin-top:8px}button{border:0;border-radius:10px;padding:14px 18px;font-weight:900;cursor:pointer;background:#eef5ff;color:#05070b}button:disabled{opacity:.55}.section{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);font-weight:900;margin:18px 0 9px}.grid{display:grid;gap:10px}.arch{grid-template-columns:repeat(5,1fr)}.card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel2),var(--panel));padding:14px;min-height:145px}.card.good{border-color:rgba(92,255,157,.55);box-shadow:0 0 24px rgba(92,255,157,.06)}.card.bad{border-color:rgba(255,102,116,.55)}.card.pending{border-color:rgba(255,209,102,.35)}.label{font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;font-weight:900}.big{font-size:20px;font-weight:950;margin:8px 0 4px}.goodText{color:var(--green)}.badText{color:var(--red)}.pendingText{color:var(--amber)}.meta{font-size:10px;color:var(--muted);line-height:1.45}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.handoff{grid-template-columns:1fr 45px 1fr 45px 1.15fr}.arrow{display:grid;place-items:center;color:#4e6076;font-size:26px}.node{border:1px solid var(--line);background:#070c12;border-radius:9px;padding:10px;margin:8px 0}.node.good{border-color:rgba(92,255,157,.55)}.node.bad{border-color:rgba(255,102,116,.55)}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.state{font-size:11px;font-weight:950;letter-spacing:.06em}.pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:10px}.stage{border:1px solid var(--line);border-radius:7px;text-align:center;padding:8px 4px;font-size:8px;color:var(--muted)}.stage.on{color:var(--green);border-color:rgba(92,255,157,.5)}.security{grid-template-columns:repeat(3,1fr)}.metric{font-size:30px;font-weight:950;margin-top:9px}.domains{grid-template-columns:repeat(5,1fr)}.domain{min-height:230px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.fact{border:1px solid var(--line);border-radius:7px;padding:7px;background:#070c12;min-width:0}.fact label{display:block;font-size:7px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}.fact span{font-size:8px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.footer{margin-top:11px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.foot{border:1px solid var(--line);border-radius:10px;padding:10px;background:#070c12}.foot b{font-size:20px}.foot span{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}@media(max-width:1150px){.arch,.domains{grid-template-columns:1fr 1fr}.handoff{grid-template-columns:1fr}.arrow{transform:rotate(90deg);height:32px}.security{grid-template-columns:1fr}.footer{grid-template-columns:1fr 1fr 1fr}}@media(max-width:700px){.arch,.domains,.footer{grid-template-columns:1fr}.hero,.top{display:block}.chips{justify-content:flex-start;margin-top:12px}.hero button{margin-top:14px}.pipeline{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div><div class="eyebrow">OAK & SPARROW SYSTEMS ENTERPRISE</div><h1>GATEKEEPER V2 · LIVE GOVERNANCE ARENA</h1><p>AI security infrastructure for authenticated agent systems, exact-result enforcement, controlled effects, and authoritative evidence.</p></div>
+    <div class="chips"><span class="chip live">GATEKEEPER V2 LIVE</span><span class="chip live">COTAL SWARM LIVE</span><span class="chip pending">DETERMINISTIC STEWARD · PENDING</span><span class="chip">40 GOVERNED OPERATIONS</span></div>
+  </header>
+
+  <section class="hero">
+    <div><h2>Work can move between agents. <strong>Authority does not move with it.</strong></h2><p>One live run coordinates a Cotal swarm, proves authority isolation, drives five real Gatekeeper domains, verifies the authoritative ledger, and proves idempotent replay.</p><div class="status" id="status">Ready for live run.</div></div>
+    <button id="run" onclick="runArena()">RUN LIVE GOVERNANCE ARENA</button>
+  </section>
+
+  <div class="section">V2 architecture state</div>
+  <section class="grid arch">
+    <div class="card" id="archSwarm"><div class="label">Agent Swarm</div><div class="big" id="swarmState">WAIT</div><div class="meta">Steward coordinator → Agent A → Agent B over Cotal authenticated channels.</div></div>
+    <div class="card pending"><div class="label">Deterministic Steward</div><div class="big pendingText">IMPLEMENTATION PENDING</div><div class="meta">Design settled. Must be pure, replayable, preserve dissent, and be independently re-derived by Gatekeeper before this turns green.</div></div>
+    <div class="card"><div class="label">Universal Artifact Boundary</div><div class="big" id="artifactState">WAIT</div><div class="meta">Exact bytes become immutable ArtifactRef before interpretation. Artifact possession never grants authority.</div></div>
+    <div class="card"><div class="label">Authority Runtime</div><div class="big" id="authorityState">WAIT</div><div class="meta">Identity, Gate 1, evidence, exact-result Gate 2, single-use capability, actuator, sealed receipt.</div></div>
+    <div class="card"><div class="label">Receipt / Replay Plane</div><div class="big" id="receiptState">WAIT</div><div class="meta">Hash-chain verification and idempotency controls execute against the live authority ledger.</div></div>
+  </section>
+
+  <div class="section">Authenticated handoff and authority boundary</div>
+  <section class="grid handoff">
+    <div class="card"><div class="label">Cotal Agent Fabric</div>
+      <div class="node" id="stewardNode"><div class="row"><div><b>Steward → #swarm</b><div class="meta">Coordinates work only</div></div><span class="state" id="stewardState">WAIT</span></div></div>
+      <div class="node" id="aArtifact"><div class="row"><div><b>Agent A → #artifacts</b><div class="meta">Governed work handoff</div></div><span class="state" id="aArtifactState">WAIT</span></div></div>
+      <div class="node" id="aExec"><div class="row"><div><b>Agent A → #execution</b><div class="meta">No execution-channel authority</div></div><span class="state" id="aExecState">WAIT</span></div></div>
+      <div class="node" id="bExec"><div class="row"><div><b>Agent B → #execution</b><div class="meta">Independent authenticated principal</div></div><span class="state" id="bExecState">WAIT</span></div></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="card"><div class="label">Universal Artifact Boundary</div>
+      <div class="node"><b>Immutable ArtifactRef</b><div class="meta mono" id="artifactRef">Waiting…</div></div>
+      <div class="node" id="transferNode"><div class="row"><div><b>Authority transferred?</b><div class="meta">Content can provide evidence. Content can never grant authority.</div></div><span class="state" id="transferState">WAIT</span></div></div>
+      <div class="node"><div class="row"><div><b>Agent A governed action</b><div class="meta">Authenticated, capability absent</div></div><span class="state badText" id="agentAAction">WAIT</span></div></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="card"><div class="label">Gatekeeper V2 Authority Runtime</div>
+      <div class="node" id="gkNode"><div class="row"><div><b>Agent B governed effect</b><div class="meta" id="runtime">Awaiting authority runtime</div></div><span class="state" id="gkState">WAIT</span></div></div>
+      <div class="pipeline"><div class="stage" id="s1">IDENTITY</div><div class="stage" id="s2">GATE 1</div><div class="stage" id="s3">EVIDENCE</div><div class="stage" id="s4">GATE 2</div><div class="stage" id="s5">ACTUATOR</div><div class="stage" id="s6">RECEIPT</div></div>
+      <div class="node"><div class="meta">Sealed receipt</div><div class="mono meta" id="receipt">Waiting…</div></div>
+    </div>
+  </section>
+
+  <div class="section">Live security controls</div>
+  <section class="grid security">
+    <div class="card" id="chainCard"><div class="label">Authoritative Chain Verification</div><div class="metric" id="chainMetric">WAIT</div><div class="meta" id="chainMeta">Gatekeeper has not verified the ledger yet.</div></div>
+    <div class="card" id="idemCard"><div class="label">No Double Execution / Idempotency</div><div class="metric" id="idemMetric">WAIT</div><div class="meta" id="idemMeta">Same idempotency key must resolve to the exact same sealed artifact.</div></div>
+    <div class="card pending"><div class="label">Tenki Compute Plane</div><div class="metric pendingText">NEXT</div><div class="meta">Remote swarm compute is intentionally not marked live until a Tenki worker contributes to the actual Arena path.</div></div>
+  </section>
+
+  <div class="section">Five live governed domains · same authority fabric</div>
+  <section class="grid domains" id="domains"></section>
+
+  <section class="footer">
+    <div class="foot"><b id="fSwarm">WAIT</b><span>Agent swarm</span></div>
+    <div class="foot"><b id="fDomains">0/5</b><span>Domains governed</span></div>
+    <div class="foot"><b id="fChains">0/5</b><span>Domain chains</span></div>
+    <div class="foot"><b id="fLedger">WAIT</b><span>Ledger verified</span></div>
+    <div class="foot"><b id="fIdem">WAIT</b><span>Idempotency</span></div>
+    <div class="foot"><b id="fArena">WAIT</b><span>End to end</span></div>
+  </section>
+</div>
+<script>
+const $=id=>document.getElementById(id);const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const short=v=>v?String(v).slice(0,12)+'…':'—';
+function mark(id,good){const e=$(id);e.classList.remove('good','bad');e.classList.add(good?'good':'bad')}
+function state(id,text,good){const e=$(id);e.textContent=text;e.className='state '+(good?'goodText':'badText')}
+function domainCard(d){const a=d.attempts?.[1]||d.attempts?.[0]||{};const x=a.artifact||{};return `<article class="card domain ${d.ok?'good':'bad'}"><div class="label">${esc(d.domain)}</div><div class="big ${d.ok?'goodText':'badText'}">${d.ok?'GOVERNED':'FAILED'}</div><div class="meta">${esc(d.path)}</div><div class="facts"><div class="fact"><label>Gate 1</label><span>${esc(short(x.gate1_hash))}</span></div><div class="fact"><label>Evidence</label><span>${esc(short(x.evidence_bundle_hash))}</span></div><div class="fact"><label>Gate 2</label><span>${esc(short(x.gate2_hash))}</span></div><div class="fact"><label>Result</label><span>${esc(short(x.result_hash))}</span></div><div class="fact"><label>Outcome</label><span>${esc(x.outcome)}</span></div><div class="fact"><label>Receipt</label><span>${esc(short(x.artifact_hash))}</span></div></div><div class="meta" style="margin-top:9px">Hash chain: <b class="${d.chained?'goodText':'badText'}">${d.chained?'VERIFIED':'FAILED'}</b></div></article>`}
+async function runArena(){const btn=$('run');btn.disabled=true;$('status').textContent='Running Cotal swarm + live Gatekeeper V2 security controls…';try{const r=await fetch('/api/demo/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'arena'})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.detail||d.error||d.failed_stage||'Arena failed');const c=d.cotal,b=d.base_demo,g=b.gatekeeper||{},art=g.artifact||{},sec=d.security||{},chain=sec.chain_verification||{},idem=sec.idempotency||{};
+state('stewardState',c.steward_assignment?.allowed?'ALLOWED':'DENIED',!!c.steward_assignment?.allowed);mark('stewardNode',!!c.steward_assignment?.allowed);state('aArtifactState',c.agent_a_handoff?.allowed?'ALLOWED':'DENIED',!!c.agent_a_handoff?.allowed);mark('aArtifact',!!c.agent_a_handoff?.allowed);state('aExecState',c.agent_a_execution?.allowed?'ALLOWED':'DENIED',!c.agent_a_execution?.allowed);mark('aExec',!c.agent_a_execution?.allowed);state('bExecState',c.agent_b_execution?.allowed?'ALLOWED':'DENIED',!!c.agent_b_execution?.allowed);mark('bExec',!!c.agent_b_execution?.allowed);
+$('swarmState').textContent=c.swarm_live?'LIVE':'FAILED';$('swarmState').className='big '+(c.swarm_live?'goodText':'badText');mark('archSwarm',!!c.swarm_live);$('fSwarm').textContent=c.swarm_live?'LIVE':'FAIL';$('fSwarm').className=c.swarm_live?'goodText':'badText';
+$('artifactRef').textContent=b.artifact_ref;$('transferState').textContent=b.authority_transfer_from_artifact?'TRUE':'FALSE';state('transferState',b.authority_transfer_from_artifact?'TRUE':'FALSE',!b.authority_transfer_from_artifact);mark('transferNode',!b.authority_transfer_from_artifact);$('agentAAction').textContent=`${b.agent_a?.status||'—'} DENY`;$('artifactState').textContent='LIVE';$('artifactState').className='big goodText';
+const govGood=g.execution==='allowed'||g.formal==='permit';state('gkState',(g.product||g.formal||'UNKNOWN').toUpperCase(),govGood);mark('gkNode',govGood);$('runtime').textContent=`${g.authority?.runtime||'gatekeeper-v2-python'} · ${g.authority?.outcome||g.execution||'governed'}`;$('receipt').textContent=art.artifact_hash||'—';['s1','s2','s3','s4','s5','s6'].forEach(x=>$(x).classList.add('on'));$('authorityState').textContent=govGood?'LIVE':'FAILED';$('authorityState').className='big '+(govGood?'goodText':'badText');
+mark('chainCard',!!chain.ok);$('chainMetric').textContent=chain.ok?'VERIFIED':'FAILED';$('chainMetric').className='metric '+(chain.ok?'goodText':'badText');$('chainMeta').textContent=chain.ok?`${chain.checked} authoritative artifacts checked · broken_at: ${chain.broken_at??'none'}`:`Chain verification failed`;$('fLedger').textContent=chain.ok?'PASS':'FAIL';$('fLedger').className=chain.ok?'goodText':'badText';
+mark('idemCard',!!idem.ok);$('idemMetric').textContent=idem.ok?'SAME ARTIFACT':'FAILED';$('idemMetric').className='metric '+(idem.ok?'goodText':'badText');$('idemMeta').textContent=idem.ok?`Replay ${idem.replay_status} · ${idem.replay_outcome} · artifact ${idem.first_artifact?.id||'—'}`:'Idempotency probe failed';$('fIdem').textContent=idem.ok?'PASS':'FAIL';$('fIdem').className=idem.ok?'goodText':'badText';$('receiptState').textContent=(chain.ok&&idem.ok)?'LIVE':'FAILED';$('receiptState').className='big '+((chain.ok&&idem.ok)?'goodText':'badText');
+const domains=d.estate?.domains||[];$('domains').innerHTML=domains.map(domainCard).join('');const dc=domains.filter(x=>x.ok).length,cc=domains.filter(x=>x.chained).length;$('fDomains').textContent=`${dc}/5`;$('fChains').textContent=`${cc}/5`;$('fArena').textContent=d.ok?'PASS':'FAIL';$('fArena').className=d.ok?'goodText':'badText';$('status').innerHTML=d.ok?'<span class="goodText">ARENA PASS</span> · swarm live · authority isolated · five domains governed · ledger verified · idempotency proven':'Arena failed';}catch(e){$('status').innerHTML=`<span class="badText">ARENA FAILED</span> · ${esc(e.message)}`;$('fArena').textContent='FAIL';$('fArena').className='badText'}finally{btn.disabled=false}}
+</script>
+</body>
+</html>
