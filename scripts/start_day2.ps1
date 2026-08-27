@@ -2,7 +2,8 @@ param(
     [switch]$Restart,
     [switch]$GenerateDemoKeys,
     [switch]$SkipPublicEdge,
-    [switch]$RunGate0
+    [switch]$RunGate0,
+    [string]$TenkiDeriveUrl = $env:TENKI_DERIVE_URL
 )
 
 $ErrorActionPreference = "Stop"
@@ -98,6 +99,14 @@ $env:DIAGNOSTIC_AGENT_ID = "agent-b"
 $env:DIAGNOSTIC_AGENT_SECRET = $agentBSecret
 Write-State "diagnostic_identity" "READY" @{ principal = "agent-b"; secret_printed = $false }
 
+if ($TenkiDeriveUrl) {
+    $env:TENKI_DERIVE_URL = $TenkiDeriveUrl
+    Write-State "tenki_derive" "CONFIGURED" @{ url_configured = $true; authority = $false }
+} else {
+    Remove-Item Env:TENKI_DERIVE_URL -ErrorAction SilentlyContinue
+    Write-State "tenki_derive" "PENDING" @{ reason = "TENKI_DERIVE_URL not supplied"; authority = $false }
+}
+
 try {
     $v2 = Invoke-RestMethod -Uri "http://127.0.0.1:8787/health" -Method Get -TimeoutSec 3
 } catch {
@@ -120,7 +129,7 @@ if ($Restart) {
 
 $artifact = Start-Process python -ArgumentList ".\src\artifact-boundary\server.py" -WorkingDirectory $RepoRoot -PassThru
 $action = Start-Process python -ArgumentList ".\src\action-edge\server.py" -WorkingDirectory $RepoRoot -PassThru
-$orchestrator = Start-Process python -ArgumentList ".\src\demo-orchestrator\server.py" -WorkingDirectory $RepoRoot -PassThru
+$orchestrator = Start-Process python -ArgumentList ".\src\demo-orchestrator\run.py" -WorkingDirectory $RepoRoot -PassThru
 
 Wait-JsonHealth "http://127.0.0.1:8081/health" | Out-Null
 Wait-JsonHealth "http://127.0.0.1:8082/health" | Out-Null
@@ -133,6 +142,7 @@ Write-State "hackathon_services" "READY" @{
     artifact_boundary_pid = $artifact.Id
     action_edge_pid = $action.Id
     orchestrator_pid = $orchestrator.Id
+    orchestrator_runtime = "arena"
     action_edge_v2_latency_ms = $upstream.latency_ms
 }
 
@@ -143,7 +153,7 @@ if (-not $SkipPublicEdge) {
         & docker rm -f gatekeeper-public-edge | Out-Null
     }
     $nginxPath = (Resolve-Path ".\nginx.conf").Path
-    $arenaPath = (Resolve-Path ".\web\day2-arena.html").Path
+    $arenaPath = (Resolve-Path ".\web\arena-v2.html").Path
     $manifestPath = (Resolve-Path ".\.well-known\ai-agent.json").Path
     $containerId = (& docker run -d --rm --name gatekeeper-public-edge -p 8080:8080 `
         --mount "type=bind,source=$nginxPath,target=/etc/nginx/conf.d/default.conf,readonly" `
@@ -160,8 +170,10 @@ Write-State "DAY2_STACK" "READY" @{
     artifact_boundary = "http://127.0.0.1:8081"
     action_edge = "http://127.0.0.1:8082"
     orchestrator = "http://127.0.0.1:8083"
+    orchestrator_runtime = "arena"
     public_edge = $(if ($SkipPublicEdge) { "SKIPPED" } else { "http://127.0.0.1:8080" })
     arena = $(if ($SkipPublicEdge) { "UNAVAILABLE" } else { "http://127.0.0.1:8080/" })
+    tenki_derive_configured = [bool]$env:TENKI_DERIVE_URL
     diagnostic_secret_printed = $false
 }
 
