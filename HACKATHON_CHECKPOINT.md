@@ -62,7 +62,11 @@ The historical signed-action 502 did not reproduce under the aligned canonical s
 
 ## Sponsor tracks
 
-AIsa.ONE x Mitosis: **PENDING REAL INTEGRATION/PROOF**. Cloudflare: **PENDING REAL INTEGRATION/PROOF**. Nebius: **OPTIONAL / PENDING**. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
+AIsa.ONE x Mitosis: **REPOSITORY ADAPTER READY / LIVE PROOF PENDING**. `src/demo-orchestrator/sponsor_aisa_mitosis.py` performs one real AIsa Exa search, hashes the returned payload, and writes a non-authoritative observation into a Mitosis Cortex through the `mi` CLI. Missing credentials, missing office configuration, AIsa failure, or Mitosis write failure remain truthful `PENDING` states. A sponsor result becomes `LIVE` only when both the AIsa call and the Mitosis write complete. The adapter never emits permit, token, capability grant, or Gatekeeper verdict fields and explicitly keeps `authority=false`.
+
+The adapter expects `AISA_API_KEY` plus `MITOSIS_OFFICE_ID` or `MI_OFFICE_ID`, and an authenticated Mitosis `mi` CLI on PATH. Targeted behavioral tests cover missing credentials, successful AIsa-to-Mitosis packaging, and Mitosis failure without false LIVE promotion.
+
+Cloudflare: **PENDING REAL INTEGRATION/PROOF**. Nebius: **OPTIONAL / PENDING**. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
 
 ## V2 pin
 
@@ -70,10 +74,12 @@ Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8
 
 ## Verification and CI
 
-Live local Core Gate 0 proof is verified. Live signed public-edge action is verified and the public-edge track is closed. The direct fresh Tenki binding path is restored repository-side and still needs one live local run against a template-started Tenki worker. Cotal remains LIVE where already proven. Deterministic Steward remains IMPLEMENTATION PENDING.
+Live local Core Gate 0 proof is verified. Live signed public-edge action is verified and the public-edge track is closed. The direct fresh Tenki binding path is restored repository-side and still needs one live local run against a template-started Tenki worker. Cotal remains LIVE where already proven. Deterministic Steward remains IMPLEMENTATION PENDING. AIsa.ONE x Mitosis has a repository-side adapter and targeted behavioral harness pass, but remains PENDING until real credentials and a real Mitosis write are exercised locally.
 
 **CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** Gatekeeper-V2-NPU was not modified.
 
 ## Next action
 
-Use the existing `gatekeeper-goi-worker-v2` Tenki template startup path to obtain one live `/derive` endpoint, export it as `TENKI_DERIVE_URL`, and run the normal `/api/demo/run` plus progressive-evidence path. The live proof must show the new run's ArtifactRef, matching artifact SHA-256, current effect, and current principal in the returned Tenki claim with `authority=false`. In parallel, begin the AIsa.ONE x Mitosis non-authoritative evidence adapter; do not wait on Tenki transport work to start sponsor-side repository implementation.
+Use the existing `gatekeeper-goi-worker-v2` Tenki template startup path to obtain one live `/derive` endpoint, export it as `TENKI_DERIVE_URL`, and run the normal `/api/demo/run` plus progressive-evidence path. The live proof must show the new run's ArtifactRef, matching artifact SHA-256, current effect, and current principal in the returned Tenki claim with `authority=false`.
+
+In parallel on the sponsor track, configure `AISA_API_KEY` and `MITOSIS_OFFICE_ID` (or `MI_OFFICE_ID`) with an authenticated `mi` CLI, then invoke `run_aisa_mitosis_evidence()` once. Only after both the real AIsa call and real Mitosis write succeed should the judge UI expose AIsa.ONE x Mitosis as LIVE. After that, move directly to Cloudflare's substantive edge/gateway role.
