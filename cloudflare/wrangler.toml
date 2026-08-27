@@ -1,0 +1,7 @@
+name = "oasse-gatekeeper-hackathon-edge"
+main = "edge-worker.js"
+compatibility_date = "2026-08-27"
+workers_dev = true
+
+[vars]
+OASSE_ORIGIN_URL = ""
