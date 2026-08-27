@@ -75,6 +75,7 @@ for ($index = 0; $index -lt $Width; $index++) {
 }
 
 $env:TENKI_DERIVE_URLS = (($workers | ForEach-Object { $_.derive_url }) -join ',')
+$env:TENKI_DERIVE_URL = $workers[0].derive_url
 $env:TENKI_SWARM_WIDTH = [string]$Width
 
 $result = [ordered]@{
@@ -87,6 +88,7 @@ $result = [ordered]@{
     env = [ordered]@{
         TENKI_SWARM_WIDTH = $env:TENKI_SWARM_WIDTH
         TENKI_DERIVE_URLS_configured = $true
+        TENKI_DERIVE_URL_compatibility_pointer = $true
     }
 }
 $result | ConvertTo-Json -Depth 6
