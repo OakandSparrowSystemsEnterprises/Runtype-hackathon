@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gatekeeper V2 Governance Arena</title>
+<style>
+:root{--bg:#05070b;--panel:#0a1018;--panel2:#0e1722;--line:#203047;--text:#eef5ff;--muted:#8495aa;--green:#5cff9d;--red:#ff6674;--blue:#67b7ff;--cyan:#58e8ff;--amber:#ffd166}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% -15%,rgba(73,143,210,.20),transparent 36%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}.shell{max-width:1540px;margin:auto;padding:22px}header{display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid var(--line);padding-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:900}.brand h1{font-size:31px;margin:4px 0 0;letter-spacing:.035em}.brand p{color:var(--muted);margin:6px 0 0}.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.chip{font-size:10px;font-weight:900;letter-spacing:.08em;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}.chip.live{border-color:rgba(92,255,157,.45);color:var(--green);background:rgba(92,255,157,.06)}.hero{margin:17px 0;border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.hero h2{margin:0;font-size:25px}.hero p{margin:6px 0 0;color:var(--muted);max-width:930px}.hero strong{color:var(--green)}button{border:0;border-radius:11px;padding:14px 19px;font-weight:900;cursor:pointer;background:var(--text);color:#05070b;letter-spacing:.025em}button:disabled{opacity:.5;cursor:wait}.statusline{margin-top:8px;color:var(--muted);font-size:12px}.sectionTitle{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);font-weight:850;margin:18px 0 10px}.flow{display:grid;grid-template-columns:1fr 44px 1fr 44px 1.2fr;align-items:stretch}.arrow{display:grid;place-items:center;color:#4b5d72;font-size:25px}.panel{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));border-radius:15px;padding:16px;min-height:230px}.panel h3{margin:0 0 12px;font-size:13px;letter-spacing:.08em}.node{border:1px solid var(--line);background:#080d14;border-radius:11px;padding:12px;margin:9px 0;transition:.25s}.node.good{border-color:rgba(92,255,157,.7);box-shadow:0 0 22px rgba(92,255,157,.08)}.node.bad{border-color:rgba(255,102,116,.72);box-shadow:0 0 22px rgba(255,102,116,.08)}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.title{font-weight:850}.meta{color:var(--muted);font-size:11px;margin-top:5px}.state{font-weight:950;font-size:12px;letter-spacing:.06em}.goodText{color:var(--green)}.badText{color:var(--red)}.blueText{color:var(--blue)}.artifact{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;color:var(--cyan);overflow-wrap:anywhere}.pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:12px}.stage{border:1px solid var(--line);border-radius:8px;padding:9px 5px;text-align:center;font-size:9px;color:var(--muted);letter-spacing:.05em}.stage.on{border-color:rgba(92,255,157,.55);color:var(--green)}.domains{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.domain{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:14px;min-height:250px;transition:.25s}.domain.good{border-color:rgba(92,255,157,.52);box-shadow:0 0 25px rgba(92,255,157,.06)}.domain h4{margin:0;font-size:13px}.domain .verdict{font-size:23px;font-weight:950;margin:13px 0 3px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px}.fact{border:1px solid var(--line);border-radius:8px;background:#070c12;padding:8px;min-width:0}.fact label{display:block;font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}.fact span{font-size:9px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.chain{margin-top:10px;border-top:1px solid var(--line);padding-top:9px;font-size:10px;color:var(--muted)}.chain strong{color:var(--green)}.footerProof{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#070c12;display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.metric{border-right:1px solid var(--line);padding-right:10px}.metric:last-child{border-right:0}.metric b{display:block;font-size:24px}.metric span{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}@media(max-width:1100px){.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);height:36px}.domains{grid-template-columns:1fr 1fr}.footerProof{grid-template-columns:1fr 1fr}}@media(max-width:700px){.hero{grid-template-columns:1fr}.domains{grid-template-columns:1fr}.pipeline{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="brand"><div class="eyebrow">Oak & Sparrow Systems Enterprise</div><h1>GATEKEEPER V2 · GOVERNANCE ARENA</h1><p>Live authority enforcement across an authenticated multi-agent system and five governed domains.</p></div>
+  <div class="chips"><span class="chip live">GATEKEEPER V2 LIVE</span><span class="chip live">COTAL AUTH MESH</span><span class="chip">40 GOVERNED OPERATIONS IN V2 ESTATE</span></div>
+</header>
+
+<section class="hero">
+  <div><h2>Work can move between agents. <strong>Authority does not move with it.</strong></h2><p>This button runs real Cotal identity/ACL enforcement, then drives live requests through Gatekeeper V2 and verifies the resulting governance chains.</p><div class="statusline" id="status">Ready for live run.</div></div>
+  <button id="run" onclick="runArena()">RUN LIVE GOVERNANCE ARENA</button>
+</section>
+
+<div class="sectionTitle">Agent handoff and authority boundary</div>
+<section class="flow">
+  <div class="panel">
+    <h3>COTAL · AUTHENTICATED AGENT FABRIC</h3>
+    <div class="node" id="aHandoff"><div class="row"><div><div class="title">Agent A → #artifacts</div><div class="meta">Authenticated handoff of governed work</div></div><span class="state" id="aHandoffState">WAIT</span></div></div>
+    <div class="node" id="aExec"><div class="row"><div><div class="title">Agent A → #execution</div><div class="meta">No execution-channel authority</div></div><span class="state" id="aExecState">WAIT</span></div></div>
+    <div class="node" id="bExec"><div class="row"><div><div class="title">Agent B → #execution</div><div class="meta">Independent authenticated principal</div></div><span class="state" id="bExecState">WAIT</span></div></div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="panel">
+    <h3>UNIVERSAL ARTIFACT BOUNDARY</h3>
+    <div class="node"><div class="title">Immutable ArtifactRef</div><div class="meta">Identity bound to exact bytes before interpretation</div><div class="artifact" id="artifact">Waiting for artifact…</div></div>
+    <div class="node" id="transfer"><div class="row"><div><div class="title">Authority transferred with artifact?</div><div class="meta">Possession is evidence, never authority.</div></div><span class="state" id="transferState">WAIT</span></div></div>
+    <div class="node"><div class="row"><div><div class="title">Agent A action</div><div class="meta">Authenticated but not authorized</div></div><span class="state" id="agentAAction">WAIT</span></div></div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="panel">
+    <h3>GATEKEEPER V2 · AUTHORITY RUNTIME</h3>
+    <div class="node" id="gkVerdict"><div class="row"><div><div class="title">Agent B governed effect</div><div class="meta" id="gkRuntime">Awaiting authority runtime</div></div><span class="state" id="gkState">WAIT</span></div></div>
+    <div class="pipeline"><div class="stage" id="s1">IDENTITY</div><div class="stage" id="s2">GATE 1</div><div class="stage" id="s3">EVIDENCE</div><div class="stage" id="s4">GATE 2</div><div class="stage" id="s5">ACTUATION</div><div class="stage" id="s6">RECEIPT</div></div>
+    <div class="node"><div class="meta">Receipt</div><div class="artifact" id="receipt">Waiting…</div></div>
+  </div>
+</section>
+
+<div class="sectionTitle">Five live governed domains · same authority fabric</div>
+<section class="domains" id="domains"></section>
+
+<section class="footerProof">
+  <div class="metric"><b id="mDomains">0/5</b><span>Domains governed</span></div>
+  <div class="metric"><b id="mChains">0/5</b><span>Chains verified</span></div>
+  <div class="metric"><b id="mCotal">0/3</b><span>Cotal controls proven</span></div>
+  <div class="metric"><b id="mArena">WAIT</b><span>End-to-end arena</span></div>
+</section>
+</div>
+<script>
+const $=id=>document.getElementById(id); const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const short=v=>v?String(v).slice(0,12)+'…':'—';
+function setNode(id,state,good){$(id).classList.remove('good','bad');$(id).classList.add(good?'good':'bad');state.className='state '+(good?'goodText':'badText')}
+function reset(){['aHandoff','aExec','bExec','transfer','gkVerdict'].forEach(id=>$(id).className='node');['aHandoffState','aExecState','bExecState','transferState','agentAAction','gkState'].forEach(id=>{$(id).textContent='WAIT';$(id).className='state'});['s1','s2','s3','s4','s5','s6'].forEach(id=>$(id).className='stage');$('artifact').textContent='Waiting for artifact…';$('receipt').textContent='Waiting…';$('domains').innerHTML='';$('mDomains').textContent='0/5';$('mChains').textContent='0/5';$('mCotal').textContent='0/3';$('mArena').textContent='WAIT'}
+function renderDomain(d){const a=d.attempts?.[1]||d.attempts?.[0]||{};const art=a.artifact||{};const ok=!!d.ok;return `<article class="domain ${ok?'good':''}"><h4>${esc(d.domain)}</h4><div class="verdict ${ok?'goodText':'badText'}">${ok?'GOVERNED':'FAILED'}</div><div class="meta">${esc(d.path)}</div><div class="facts"><div class="fact"><label>Gate 1</label><span>${esc(short(art.gate1_hash))}</span></div><div class="fact"><label>Evidence</label><span>${esc(short(art.evidence_bundle_hash))}</span></div><div class="fact"><label>Gate 2</label><span>${esc(short(art.gate2_hash))}</span></div><div class="fact"><label>Result</label><span>${esc(short(art.result_hash))}</span></div><div class="fact"><label>Outcome</label><span>${esc(art.outcome)}</span></div><div class="fact"><label>Receipt</label><span>${esc(short(art.artifact_hash))}</span></div></div><div class="chain">Hash chain: <strong>${d.chained?'VERIFIED':'FAILED'}</strong><br>${esc(short(art.previous_hash))} → ${esc(short(art.artifact_hash))}</div></article>`}
+async function runArena(){const btn=$('run');btn.disabled=true;reset();$('status').textContent='Running authenticated handoff + live Gatekeeper V2 estate…';try{const r=await fetch('/api/demo/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'arena'})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.detail||d.failed_stage||d.error||'Arena failed');const c=d.cotal,b=d.base_demo,g=b.gatekeeper||{},art=g.artifact||{};
+$('aHandoffState').textContent=c.agent_a_handoff.allowed?'ALLOWED':'DENIED';setNode('aHandoff',$('aHandoffState'),c.agent_a_handoff.allowed);
+$('aExecState').textContent=c.agent_a_execution.allowed?'ALLOWED':'DENIED';setNode('aExec',$('aExecState'),!c.agent_a_execution.allowed);
+$('bExecState').textContent=c.agent_b_execution.allowed?'ALLOWED':'DENIED';setNode('bExec',$('bExecState'),c.agent_b_execution.allowed);
+$('artifact').textContent=b.artifact_ref;$('transferState').textContent=b.authority_transfer_from_artifact?'TRUE':'FALSE';setNode('transfer',$('transferState'),!b.authority_transfer_from_artifact);
+$('agentAAction').textContent=`${b.agent_a?.status||'—'} DENY`;$('agentAAction').className='state badText';
+$('gkState').textContent=(g.product||g.formal||'UNKNOWN').toUpperCase();setNode('gkVerdict',$('gkState'),g.execution==='allowed'||g.formal==='permit');$('gkRuntime').textContent=`${g.authority?.runtime||'Gatekeeper'} · ${g.authority?.outcome||g.execution||'governed'}`;$('receipt').textContent=art.artifact_hash||'—';['s1','s2','s3','s4','s5','s6'].forEach(id=>$(id).classList.add('on'));
+const domains=d.estate?.domains||[];$('domains').innerHTML=domains.map(renderDomain).join('');const domainCount=domains.filter(x=>x.ok).length,chainCount=domains.filter(x=>x.chained).length,cotalCount=[c.agent_a_handoff.allowed,!c.agent_a_execution.allowed,c.agent_b_execution.allowed].filter(Boolean).length;$('mDomains').textContent=`${domainCount}/5`;$('mChains').textContent=`${chainCount}/5`;$('mCotal').textContent=`${cotalCount}/3`;$('mArena').textContent='PASS';$('mArena').className='goodText';$('status').textContent='LIVE PROOF COMPLETE · Cotal identity/ACLs + Gatekeeper V2 authority + five verified governance chains.';
+}catch(e){$('status').textContent='Arena error: '+e.message;$('mArena').textContent='FAIL';$('mArena').className='badText'}finally{btn.disabled=false}}
+reset();
+</script>
+</body>
+</html>
