@@ -70,17 +70,18 @@ def main():
 
     text = TARGET.read_text(encoding="utf-8")
 
-    if "run_aisa_mitosis" in text:
-        emit("sponsor_plane_patch", "ALREADY_PATCHED", target=str(TARGET))
-        return 0
-
     if "run_deterministic_steward" not in text:
         emit(
             "sponsor_plane_patch", "FAIL",
             reason="this evidence_pipeline.py is not the steward-wired variant; "
-                   "aborting so local Steward semantics stay untouched",
+                   "restore it first (git checkout 39954df -- "
+                   "src/demo-orchestrator/evidence_pipeline.py), then re-run",
         )
         return 1
+
+    if "run_aisa_mitosis" in text:
+        emit("sponsor_plane_patch", "ALREADY_PATCHED", target=str(TARGET))
+        return 0
 
     anchors = [
         ("import", IMPORT_ANCHOR, IMPORT_ANCHOR + "\n" + IMPORT_INSERT),
