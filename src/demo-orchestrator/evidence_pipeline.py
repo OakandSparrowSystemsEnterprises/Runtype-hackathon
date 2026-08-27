@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import time
 
+from aisa_mitosis import run_aisa_mitosis
 from arena import run_arena
 from tenki_swarm import run_tenki_swarm
 
@@ -43,13 +44,20 @@ def run_progressive_evidence(base_demo):
         raise RuntimeError("base demo did not return effect_principal")
 
     started = time.perf_counter()
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         existing_future = pool.submit(run_arena, base_demo)
         tenki_future = pool.submit(
             run_tenki_swarm,
             artifact_ref,
             requested_effect,
             principal,
+        )
+        sponsor_future = pool.submit(
+            run_aisa_mitosis,
+            artifact_ref,
+            requested_effect,
+            principal,
+            base_demo.get("target_url"),
         )
 
         try:
@@ -66,6 +74,16 @@ def run_progressive_evidence(base_demo):
         except Exception as exc:
             tenki = _failed_plane("tenki", exc)
             tenki.update({"live": False, "authority": False})
+
+        try:
+            aisa_mitosis = sponsor_future.result()
+        except Exception as exc:
+            aisa_mitosis = _failed_plane("aisa_mitosis", exc)
+            aisa_mitosis.update({
+                "implemented": True,
+                "sponsor": "AIsa.ONE x Mitosis",
+                "live": False,
+            })
 
     elapsed_ms = (time.perf_counter() - started) * 1000
     cotal = existing.get("cotal") or {"ok": False, "status": "UNAVAILABLE"}
@@ -95,4 +113,6 @@ def run_progressive_evidence(base_demo):
         "estate": estate,
         "tenki": tenki,
         "deterministic_steward": steward,
+        "sponsor": {"aisa_mitosis": aisa_mitosis},
+        "sponsor_evidence_live": aisa_mitosis.get("status") == "LIVE",
     }
