@@ -279,11 +279,25 @@ class ActionHandler(BaseHTTPRequestHandler):
             method="POST"
         )
 
+        upstream_started = time.perf_counter()
+
         try:
             with urllib.request.urlopen(request, timeout=15) as response:
-                gatekeeper = json.loads(
-                    response.read().decode("utf-8")
+                response_raw = response.read()
+                upstream_latency_ms = round(
+                    (time.perf_counter() - upstream_started) * 1000,
+                    2
                 )
+                try:
+                    gatekeeper = json.loads(response_raw.decode("utf-8"))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    return self.send_json(502, {
+                        "error": "gatekeeper_invalid_response",
+                        "upstream_stage": "decode_response",
+                        "upstream_http_status": response.status,
+                        "upstream_latency_ms": upstream_latency_ms,
+                        "runtime_identity_proven": False
+                    })
         except urllib.error.HTTPError as exc:
             detail_raw = exc.read().decode("utf-8", errors="replace")
 
@@ -294,12 +308,34 @@ class ActionHandler(BaseHTTPRequestHandler):
 
             return self.send_json(exc.code, {
                 "error": "gatekeeper_rejected",
-                "detail": detail
+                "detail": detail,
+                "upstream_stage": "evaluate",
+                "upstream_http_status": exc.code,
+                "upstream_latency_ms": round(
+                    (time.perf_counter() - upstream_started) * 1000,
+                    2
+                )
             })
         except urllib.error.URLError as exc:
             return self.send_json(502, {
                 "error": "gatekeeper_unreachable",
-                "detail": str(exc.reason)
+                "upstream_stage": "evaluate",
+                "error_class": type(exc.reason).__name__,
+                "upstream_latency_ms": round(
+                    (time.perf_counter() - upstream_started) * 1000,
+                    2
+                ),
+                "runtime_identity_proven": False
+            })
+        except TimeoutError:
+            return self.send_json(504, {
+                "error": "gatekeeper_timeout",
+                "upstream_stage": "evaluate",
+                "upstream_latency_ms": round(
+                    (time.perf_counter() - upstream_started) * 1000,
+                    2
+                ),
+                "runtime_identity_proven": False
             })
 
         return self.send_json(200, {
