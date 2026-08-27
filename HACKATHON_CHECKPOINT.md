@@ -26,7 +26,7 @@ Live Tenki worker status remains PENDING. The next real step is to create a fres
 
 Missing authentication remains correctly `401 missing_agent_auth`. The historical signed path `502` is NOT marked fixed. `src/action-edge/server.py` preserves HMAC as its own verifier, capability gating, immutable ArtifactRef checks, and the real `action-edge -> GATEKEEPER_BASE_URL -> /api/domains/parent-shield/navigation/evaluate` call-home boundary. `/health/upstream` probes V2 from the action-edge process namespace without exposing the configured URL or credentials. Signed evaluation failures are classified as `gatekeeper_unreachable`, `gatekeeper_invalid_response`, or `gatekeeper_timeout` rather than collapsing into an opaque gateway failure.
 
-`scripts/diagnose_action_edge.py` now distinguishes action-edge process failure, direct action-edge POST failure, public-edge-to-action-edge failure, direct V2 failure, action-edge namespace V2 reachability failure, signed V2 unreachable, invalid JSON response, timeout, and successful non-502 signed completion. Commit `8772b0f018e9ecafa0a437b2b6834ff69cc7c980` expands `scripts/test_diagnose_action_edge.py` to nine deterministic classifier cases. All nine cases passed in targeted execution on this run. Live 502 verification still requires the active Day 2 stack and real signed credentials/artifact.
+`scripts/diagnose_action_edge.py` distinguishes action-edge process failure, direct action-edge POST failure, public-edge-to-action-edge failure, direct V2 failure, action-edge namespace V2 reachability failure, signed V2 unreachable, invalid JSON response, timeout, and successful non-502 signed completion. Commit `8772b0f018e9ecafa0a437b2b6834ff69cc7c980` expanded `scripts/test_diagnose_action_edge.py` to nine deterministic classifier cases; those nine cases passed in targeted execution. Live 502 verification still requires the active Day 2 stack and real signed credentials/artifact.
 
 ## V2 pin
 
@@ -36,7 +36,9 @@ Missing authentication remains correctly `401 missing_agent_auth`. The historica
 
 Previously verified integration commits include `38162bf` Tenki swarm contract, `8f76854` progressive evidence pipeline, `2ed79cf` `/api/demo/evidence`, `c874297` Tenki authority-boundary tests, `7b2d47c` progressive judge UI, `80e5e28` evidence failure isolation, `2004817` verdict-preserving UI failure handling, `730125a` action-edge upstream health, `2fc6c9d` controlled invalid V2 response handling, `763a969` V2-hop latency, `6d56fa5` complete proof latency, `854273d` latency UI, `42d2cc5` recursive Tenki non-authority guard, and `83f4771` nested authority regression coverage.
 
-Targeted deterministic verification this run: 9/9 signed-action diagnostic classifier cases PASS. GitHub Actions CI was intentionally skipped to conserve Actions usage. No no-op commit was created. Gatekeeper-V2-NPU was not modified.
+New regression coverage: commit `d0f1251eb60399194d3286929ea15675cbb02f3b` adds `src/demo-orchestrator/test_evidence_pipeline.py`, locking the progressive supporting-evidence contract into four deterministic cases: pending Tenki preserves healthy Cotal/estate evidence; Tenki failure cannot suppress Cotal/estate; Cotal/estate failure cannot suppress a genuine non-authoritative Tenki result; and missing ArtifactRef fails before supporting work begins. The file was re-fetched from the branch after commit and statically verified against the current `evidence_pipeline.py` contract. Connector-only execution could not clone the repository because outbound GitHub DNS is unavailable in the execution container, so this run does not falsely claim local execution of the new suite.
+
+GitHub Actions CI was intentionally skipped to conserve Actions usage. No no-op commit was created. Gatekeeper-V2-NPU was not modified.
 
 ## Next dependency
 
