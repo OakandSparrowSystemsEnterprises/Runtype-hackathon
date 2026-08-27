@@ -10,7 +10,7 @@ The repaired ontology remains V2-owned and is not duplicated here.
 
 ## Core Gate 0
 
-Status: **PASS — LIVE LOCAL PROOF VERIFIED 2026-08-27**.
+Status: **PASS - LIVE LOCAL PROOF VERIFIED 2026-08-27**.
 
 Most recent canonical launcher proof ArtifactRef: `sha256:0faa19559edec5195bc54d81045872aeeb0d8c8314b3f20189709c9133a01852`.
 
@@ -22,27 +22,27 @@ Complete authority-transfer proof: `105.62 ms`.
 
 Verified stages: V2 source pin PASS; fresh immutable ArtifactRef PASS; Agent A authenticated and denied with HTTP 403; same ArtifactRef handoff with `authority_transfer_from_artifact=false`; Agent B independently governed with HTTP 200; Gatekeeper `formal=permit` and `execution=allowed`; sealed receipt PASS; progressive evidence PASS; verdict preservation PASS; final `GATE_0` PASS with `authority_invariant=PASS` and `sponsor_development_unblocked=true`.
 
-The canonical Windows launcher is `scripts/start_day2.ps1`. It starts the artifact boundary, action edge, arena orchestrator, and nginx public edge in one aligned environment, can generate ephemeral hackathon HMAC identities without printing them, checks V2 and action-edge upstream health, and can run Gate 0 or the Steward proof in the same environment.
+The canonical Windows launcher is `scripts/start_day2.ps1`. It starts the artifact boundary, action edge, arena orchestrator, and nginx public edge in one aligned environment, can generate ephemeral hackathon HMAC identities without printing them, checks V2 and action-edge upstream health, and can run Gate 0 in the same environment.
 
 ## Deterministic Steward
 
-Status: **IMPLEMENTED / LIVE PARTIAL PROOF VERIFIED**.
+Status: **IMPLEMENTATION PENDING**.
 
-The Steward is now real repository code in `src/demo-orchestrator/deterministic_steward.py`; it is no longer inferred from Tenki status. The latest local proof returned `implemented=true`, `swarm_native=true`, `authority=false`, a stable `plan_id`, a deterministic `state_hash`, Cotal coordination worker PASS, and no failed workers. That proof was PARTIAL only because no live Tenki swarm endpoints were configured in that shell.
+The Steward remains a settled design only. It is not a Gate 0 requirement, not a Tenki alias, and Cotal must not impersonate it. `scripts/start_day2.ps1 -RunSteward` now reports `IMPLEMENTATION_PENDING` without executing a Steward proof. Progressive evidence also reports the Steward as `implemented=false`, `authority=false`, and `role=settled_design_only`.
 
-The Steward now plans one Cotal coordination worker plus a fixed-width Tenki replica pool. The default Tenki width is four, so the default plan is five first-class workers. Completion order and timing remain visible provenance but are excluded from deterministic state hashing. Worker failures are isolated and preserved rather than collapsing the whole aggregate. Gatekeeper remains the only authority source for effects.
-
-Key commits: `5905a19f3fb2ea7beee32b1c78f169073d239e5a` initial Steward module; `d8fab4ed8a11322522690393b8180c88e2537ffd` deterministic hash-boundary correction; `9701c3e1bd12d7428d377005e53deb007ef50f7a` first-class Tenki replica workers; `c7b1d95c01767bd1c8de2c15af5d921a7c91c9f3` live proof upgraded to require replica consensus when endpoints are configured.
+Any experimental Steward code still present in the branch is not part of the active runtime contract and must not be represented to judges as implemented or live.
 
 ## Tenki
 
-Platform/runtime status: **LIVE VERIFIED**. Multi-replica swarm runtime status: **READY TO LAUNCH / LIVE PROOF PENDING**.
+Platform/runtime status: **LIVE VERIFIED historically**. Fresh per-run binding status: **REPOSITORY PATH READY / LIVE LOCAL VERIFICATION PENDING**.
 
 Known-good snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098`; historical successful sandbox/session `01a043be-5240-7bb3-a336-df794b64e56c`; worker port 8080. `POST /derive` previously succeeded with exact request fields `artifact_ref`, `artifact_sha256`, `requested_effect`, and `principal`. Tenki remains non-authoritative evidence with `authority=false`, `compute_plane=tenki`, and `role=derived_claim_only`.
 
-The new Tenki workload is a deterministic replica swarm, not invented worker semantics. Every replica independently receives the same exact governed `/derive` request for the fresh ArtifactRef/effect/principal. The Steward requires claim-hash consensus and preserves failed/pending replicas independently. Full Tenki swarm LIVE requires the configured replica width to complete against distinct live `/derive` endpoints.
+`src/demo-orchestrator/evidence_pipeline.py` now binds the exact current `/api/demo/run` identity directly into `run_tenki_swarm`: fresh `artifact_ref`, current `requested_effect`, and current `effect_principal`. `tenki_swarm.py` derives and validates the matching `artifact_sha256` and rejects claims that do not match the exact current artifact/effect/principal or that attempt to assert authority. Historical captured claims are never replayed against a fresh ArtifactRef.
 
-`scripts/launch_tenki_swarm.ps1` now restores multiple sandboxes from the verified snapshot, starts `python3 /home/tenki/gatekeeper-tenki/worker.py` in each sandbox, exposes port 8080, collects the returned preview URLs, and populates `TENKI_DERIVE_URLS` plus `TENKI_SWARM_WIDTH` for the current PowerShell session. Commits: `319954f14a837560d12aa8c8f35ac3fc7237465e` replica-swarm runtime; `8b58a923ae58da421b4c51b980bdfb6a31e4a9f2` real Tenki sandbox launcher; `2fcf8cc264ae2856883cf244580ed4b8ae4b48a9` launcher compatibility pointer.
+The progressive evidence path preserves Gatekeeper's already-returned verdict while Tenki and Cotal resolve independently. A Tenki failure remains non-authoritative supporting-evidence failure and cannot erase or replace the sealed Gatekeeper verdict.
+
+Four Tenki sandbox sessions were created/adopted locally during the swarm work, but the restored sessions did not expose live `/derive` workers because Tenki `sandbox exec` repeatedly failed with `write envelope: EOF`; SSH also failed certificate verification. Do not treat those endpoints as LIVE. The existing `gatekeeper-goi-worker-v2` template is known to contain `start_cmd = python3 /home/tenki/gatekeeper-tenki/worker.py`, so the next Tenki runtime attempt should use the template-native startup path rather than another snapshot-plus-exec loop.
 
 Historical ArtifactRef `sha256:5386fdfcbc233f3b8da8ba274651d2174aa233e88dc4d35948f2189923f652e5` is historical evidence only and must never be replayed for a new artifact.
 
@@ -52,17 +52,28 @@ Status: **LIVE where already proven**. Preserve its multi-principal identity/han
 
 ## Public-edge signed-action track
 
-Status: **PASS — LIVE SIGNED REQUEST VERIFIED 2026-08-27**.
+Status: **CLOSED - LIVE SIGNED REQUEST VERIFIED 2026-08-27**.
 
 The canonical launcher brought up nginx on port 8080 and the full signed path completed successfully against the exact fresh Gate 0 ArtifactRef `sha256:0faa19559edec5195bc54d81045872aeeb0d8c8314b3f20189709c9133a01852`.
 
 Verified public-edge evidence: action-edge health HTTP 200; action-edge Gatekeeper upstream health HTTP 200 with `reachable_from_action_edge=true` and `parent_shield_mounted=true`; direct unsigned action HTTP 401 `missing_agent_auth`; public unsigned action HTTP 401 `missing_agent_auth`; signed public action HTTP 200; signed principal `agent-b`; capability `parent-shield.navigation`; `authority_transfer_from_artifact=false`; Gatekeeper `formal=permit`, `product=GREEN`, `execution=allowed`; action-edge measured signed V2 hop `58.22 ms`; final diagnostic `SIGNED_PROBE_COMPLETED`.
 
-The historical signed-action 502 did not reproduce under the aligned canonical stack. Treat this track as closed for the verified local Day 2 topology. Runtime image/process identity remains explicitly unproven.
+The historical signed-action 502 did not reproduce under the aligned canonical stack. Treat this track as closed unless regression evidence appears. Runtime image/process identity remains explicitly unproven.
 
 ## Sponsor tracks
 
-AIsa.ONE x Mitosis: **PENDING REAL INTEGRATION/PROOF**. Cloudflare: **PENDING REAL INTEGRATION/PROOF**. Nebius: **OPTIONAL / PENDING**. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
+AIsa.ONE x Mitosis: **REPOSITORY ADAPTER READY / LIVE PROOF PENDING**. Two complementary repository paths exist, both non-authoritative and truthfully PENDING until real round-trips complete:
+
+- Standalone adapter `src/demo-orchestrator/sponsor_aisa_mitosis.py`: performs one real AIsa Exa search, hashes the returned payload, and writes a non-authoritative observation into a Mitosis Cortex through the `mi` CLI. Expects `AISA_API_KEY` plus `MITOSIS_OFFICE_ID` or `MI_OFFICE_ID` and an authenticated `mi` CLI on PATH. Missing credentials, AIsa failure, or Mitosis write failure remain truthful `PENDING` states.
+- Wired evidence plane `src/demo-orchestrator/aisa_mitosis.py` (contract `oasse.sponsor.aisa-mitosis.capability-evidence.v1`): runs inside `/api/demo/evidence` after the Gatekeeper verdict is sealed and is returned under `sponsor.aisa_mitosis`; the Day 2 Arena renders its card and chip from runtime evidence only. Claims are bound to the current governed `artifact_ref`/`artifact_sha256`/`requested_effect`/`principal`/`target_url`; any sponsor response asserting `authority`, `permit`, `capability`, `token`, or `gatekeeper_verdict` fails that stage; a sponsor failure can never erase the Gatekeeper verdict or gate core `evidence_complete`. Env: `AISA_API_BASE` + `AISA_API_KEY` (+ `AISA_MODEL`; `AISA_CAPABILITY_PATH` defaults to `/v1/chat/completions`) and `MITOSIS_API_KEY` (streamable-HTTP MCP `cortex_remember`, `MITOSIS_MCP_URL` defaults to `https://mitosislabs.ai/api/mcp`).
+
+Neither path emits permit, token, capability grant, or Gatekeeper verdict fields; both keep `authority=false`. A sponsor result becomes `LIVE` only when both its real AIsa call and real Mitosis write complete.
+
+Cloudflare: **EDGE SCRIPT READY / LIVE PROOF PENDING**. `scripts/start_cloudflare_edge.ps1` starts a real Cloudflare-operated quick tunnel in front of the nginx public edge, exports `CLOUDFLARE_PUBLIC_EDGE`, and probes the tunnel for a `cf-ray` response header as proof Cloudflare is actually in the request path (reported honestly as `mode=quick-tunnel`). The Arena's CLOUDFLARE EDGE chip flips only on that same runtime evidence (`cf-ray` on the page's own API responses). Nebius: **OPTIONAL / NOT IN PATH** — declared additive, not critical-path. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
+
+## Judge UX and submission package
+
+`SUBMISSION.md` is the judge-facing package: 60-second demo path, sponsor architecture, invariants, and run instructions. The Day 2 Arena now has a **RUN DENIED PATH** control: it submits a boundary-restricted URL through the identical pipeline and renders Gatekeeper's deny/hold with its rule id and sealed receipt — and truthfully reports "URL WAS PERMITTED" if the chosen URL is not actually blocked by the pack (pick a clearly adult/gambling URL before demoing). Denials are presented under the same receipt discipline as permits. All chips (Tenki, AIsa × Mitosis, Cloudflare) flip only from current-run runtime evidence.
 
 ## V2 pin
 
@@ -70,10 +81,14 @@ Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8
 
 ## Verification and CI
 
-Live local Core Gate 0 proof is verified. Live signed public-edge action is verified. Deterministic Steward implementation has a live PARTIAL proof with Cotal active and Tenki replicas pending. The next live proof is the four-replica Tenki swarm consensus run.
+Live local Core Gate 0 proof is verified. Live signed public-edge action is verified and the public-edge track is closed. The direct fresh Tenki binding path is restored repository-side and still needs one live local run against a template-started Tenki worker. Cotal remains LIVE where already proven. Deterministic Steward remains IMPLEMENTATION PENDING. AIsa.ONE x Mitosis has two repository-side adapters with passing behavioral harnesses, but remains PENDING until real credentials and a real Mitosis write are exercised locally.
+
+Active-contract unit suites are green: `test_evidence_pipeline.py` (verdict preservation, plane isolation, current-run identity binding, sponsor never gating core evidence), `test_tenki_swarm.py` (claim binding to the current artifact/effect/principal, non-authority enforcement, honest PENDING without endpoints, two-replica consensus semantics), `test_aisa_mitosis.py`, and `test_sponsor_aisa_mitosis.py`. `test_deterministic_steward.py` tracks the explicitly out-of-contract experimental Steward module and is not part of the active runtime contract.
 
 **CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** Gatekeeper-V2-NPU was not modified.
 
 ## Next action
 
-Launch the real Tenki replica swarm from the verified snapshot in the current PowerShell session, then rerun the canonical Steward proof. Full Steward LIVE requires Cotal coordination plus all configured Tenki replicas completing with deterministic GOI claim-hash consensus while every worker remains `authority=false`.
+Use the existing `gatekeeper-goi-worker-v2` Tenki template startup path to obtain one live `/derive` endpoint, export it as `TENKI_DERIVE_URL`, and run the normal `/api/demo/run` plus progressive-evidence path. The live proof must show the new run's ArtifactRef, matching artifact SHA-256, current effect, and current principal in the returned Tenki claim with `authority=false`.
+
+In parallel on the sponsor track, configure `AISA_API_KEY` and `MITOSIS_OFFICE_ID` (or `MI_OFFICE_ID`) with an authenticated `mi` CLI, then invoke `run_aisa_mitosis_evidence()` once. Only after both the real AIsa call and real Mitosis write succeed should the judge UI expose AIsa.ONE x Mitosis as LIVE. After that, move directly to Cloudflare's substantive edge/gateway role.

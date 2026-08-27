@@ -2,6 +2,8 @@
 
 Hackathon integration repository for the Agent Native Builders Hackathon at Cloudflare HQ, August 26–27, 2026.
 
+**Judges: start with [SUBMISSION.md](SUBMISSION.md)** — the 60-second demo path, sponsor architecture, and truthful live-status record. Day 2 live state is tracked in [HACKATHON_CHECKPOINT.md](HACKATHON_CHECKPOINT.md); the Day 2 Arena (`web/day2-arena.html`, served at the public edge `/`) proves permit **and** denied paths live, with every status chip driven by current-run runtime evidence.
+
 ## What this repository is
 
 This repository contains the agent-facing integration layer built around Gatekeeper V2 for the hackathon. It is intentionally separated from the proprietary Gatekeeper V2 core.

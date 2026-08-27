@@ -1,8 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 import time
 
+from aisa_mitosis import run_aisa_mitosis
 from arena import run_arena
-from deterministic_steward import run_deterministic_steward
+from tenki_swarm import run_tenki_swarm
 
 
 def _failed_plane(name, exc):
@@ -14,8 +15,23 @@ def _failed_plane(name, exc):
     }
 
 
+def _steward_pending():
+    return {
+        "ok": True,
+        "status": "IMPLEMENTATION_PENDING",
+        "implemented": False,
+        "authority": False,
+        "role": "settled_design_only",
+    }
+
+
 def run_progressive_evidence(base_demo):
-    """Resolve slower evidence planes after the Gatekeeper verdict is already known."""
+    """Resolve slower evidence planes after the Gatekeeper verdict is already known.
+
+    The current run identity is bound directly into Tenki. Tenki remains derived,
+    non-authoritative evidence. The Deterministic Steward is deliberately not a
+    runtime dependency and remains implementation-pending.
+    """
     artifact_ref = base_demo.get("artifact_ref")
     requested_effect = base_demo.get("requested_effect")
     principal = base_demo.get("effect_principal")
@@ -28,13 +44,20 @@ def run_progressive_evidence(base_demo):
         raise RuntimeError("base demo did not return effect_principal")
 
     started = time.perf_counter()
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         existing_future = pool.submit(run_arena, base_demo)
-        steward_future = pool.submit(
-            run_deterministic_steward,
+        tenki_future = pool.submit(
+            run_tenki_swarm,
             artifact_ref,
             requested_effect,
             principal,
+        )
+        sponsor_future = pool.submit(
+            run_aisa_mitosis,
+            artifact_ref,
+            requested_effect,
+            principal,
+            base_demo.get("target_url"),
         )
 
         try:
@@ -47,33 +70,26 @@ def run_progressive_evidence(base_demo):
             }
 
         try:
-            steward = steward_future.result()
+            tenki = tenki_future.result()
         except Exception as exc:
-            steward = _failed_plane("deterministic_steward", exc)
-            steward.update({
+            tenki = _failed_plane("tenki", exc)
+            tenki.update({"live": False, "authority": False})
+
+        try:
+            aisa_mitosis = sponsor_future.result()
+        except Exception as exc:
+            aisa_mitosis = _failed_plane("aisa_mitosis", exc)
+            aisa_mitosis.update({
                 "implemented": True,
-                "swarm_native": True,
-                "authority": False,
-                "workers": [],
+                "sponsor": "AIsa.ONE x Mitosis",
+                "live": False,
             })
 
     elapsed_ms = (time.perf_counter() - started) * 1000
     cotal = existing.get("cotal") or {"ok": False, "status": "UNAVAILABLE"}
     estate = existing.get("estate") or {"ok": False, "status": "UNAVAILABLE"}
+    steward = _steward_pending()
 
-    tenki = {"status": "PENDING", "live": False, "authority": False}
-    for worker in steward.get("workers") or []:
-        if worker.get("plane") == "tenki":
-            candidate = worker.get("output")
-            if isinstance(candidate, dict):
-                tenki = candidate
-            break
-
-    steward_live = (
-        steward.get("status") == "LIVE"
-        and steward.get("implemented") is True
-        and steward.get("authority") is False
-    )
     tenki_live = (
         bool(tenki.get("live"))
         and tenki.get("status") == "LIVE"
@@ -82,7 +98,6 @@ def run_progressive_evidence(base_demo):
     evidence_complete = (
         bool(cotal.get("ok"))
         and bool(estate.get("ok"))
-        and steward_live
         and tenki_live
     )
 
@@ -98,4 +113,6 @@ def run_progressive_evidence(base_demo):
         "estate": estate,
         "tenki": tenki,
         "deterministic_steward": steward,
+        "sponsor": {"aisa_mitosis": aisa_mitosis},
+        "sponsor_evidence_live": aisa_mitosis.get("status") == "LIVE",
     }

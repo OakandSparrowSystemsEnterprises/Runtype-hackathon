@@ -1,6 +1,7 @@
 param(
     [int]$Width = 4,
     [string]$SnapshotId = "07fd77b8-7caf-400e-8e8e-42eb16396098",
+    [string]$ImageRef = $env:TENKI_IMAGE_REF,
     [string]$WslDistribution = "Ubuntu-24.04",
     [string]$TenkiCli = "/home/ankou/.local/bin/tenki",
     [string]$WorkerCommand = "python3 /home/tenki/gatekeeper-tenki/worker.py",
@@ -13,6 +14,9 @@ param(
 $ErrorActionPreference = "Stop"
 if ($Width -lt 2 -or $Width -gt 16) { throw "Width must be between 2 and 16" }
 if ($ExistingSessionIds.Count -gt $Width) { throw "ExistingSessionIds cannot exceed requested Width" }
+
+$ImageMode = -not [string]::IsNullOrWhiteSpace($ImageRef)
+$SessionPrefix = $(if ($ImageMode) { "gatekeeper-goi-image-swarm" } else { "gatekeeper-goi-swarm" })
 
 function Invoke-Tenki([string[]]$Arguments, [switch]$FailForward) {
     $lastOutput = @()
@@ -80,7 +84,7 @@ function Discover-TenkiSessions {
         $nameText = if ($name) { "$name" } else { "" }
         $statusText = if ($status) { "$status".ToUpperInvariant() } else { "" }
         $active = (-not $statusText) -or $statusText -in @("RUNNING", "ACTIVE", "READY")
-        if ($id -and $active -and $nameText -match '^gatekeeper-goi') {
+        if ($id -and $active -and $nameText -match "^$([regex]::Escape($SessionPrefix))") {
             [void]$found.Add([pscustomobject]@{ id = "$id"; name = $nameText })
         }
     }
@@ -113,23 +117,25 @@ if (-not $NoAutoDiscover -and $ExistingSessionIds.Count -lt $Width) {
     }
 }
 
-# Phase 1: build the entire session pool before any fragile exec calls.
 $sessionPool = New-Object System.Collections.ArrayList
 for ($index = 0; $index -lt $Width; $index++) {
     if ($index -lt $ExistingSessionIds.Count) {
         [void]$sessionPool.Add([pscustomobject]@{ index = $index; session_id = $ExistingSessionIds[$index]; adopted = $true })
         continue
     }
-    $name = "gatekeeper-goi-swarm-$('{0:d2}' -f $index)"
-    Write-Host "Creating Tenki replica $index/$($Width - 1)..."
-    $args = @("sandbox", "create", "--snapshot", $SnapshotId, "--name", $name, "--metadata", "oasse_role=goi-replica", "--metadata", "oasse_replica=$index")
+    $name = "$SessionPrefix-$('{0:d2}' -f $index)"
+    Write-Host "Creating Tenki replica $index/$($Width - 1) from $(if ($ImageMode) { 'published image' } else { 'snapshot' })..."
+    if ($ImageMode) {
+        $args = @("sandbox", "create", "--image", $ImageRef, "--name", $name, "--metadata", "oasse_role=goi-replica", "--metadata", "oasse_replica=$index")
+    } else {
+        $args = @("sandbox", "create", "--snapshot", $SnapshotId, "--name", $name, "--metadata", "oasse_role=goi-replica", "--metadata", "oasse_replica=$index")
+    }
     if ($Sticky) { $args += "--sticky" }
     $sessionId = Extract-SessionId (Invoke-Tenki $args)
     [void]$sessionPool.Add([pscustomobject]@{ index = $index; session_id = $sessionId; adopted = $false })
 }
 Write-Host "Tenki session pool ready: $($sessionPool.Count)/$Width sessions."
 
-# Phase 2: expose/probe/start every worker independently. No single worker can abort the pool.
 $workers = New-Object System.Collections.ArrayList
 foreach ($session in $sessionPool) {
     $index = [int]$session.index
@@ -138,19 +144,24 @@ foreach ($session in $sessionPool) {
 
     $preview = Extract-PreviewUrl (Invoke-Tenki @("sandbox", "expose", "--session", $sessionId, "--port", "8080") -FailForward)
     $deriveUrl = if ($preview) { "$preview/derive" } else { $null }
-    $live = Test-DeriveEndpoint $deriveUrl
-    $startAttempted = $false
 
-    if (-not $live) {
-        $startAttempted = $true
-        $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
-        Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) -FailForward | Out-Null
-        Start-Sleep -Milliseconds 600
-        if (-not $deriveUrl) {
-            $preview = Extract-PreviewUrl (Invoke-Tenki @("sandbox", "expose", "--session", $sessionId, "--port", "8080") -FailForward)
-            if ($preview) { $deriveUrl = "$preview/derive" }
+    if ($ImageMode) {
+        $live = $false
+        for ($probeAttempt = 1; $probeAttempt -le 8; $probeAttempt++) {
+            if (Test-DeriveEndpoint $deriveUrl) { $live = $true; break }
+            Start-Sleep -Milliseconds 750
         }
+        $startAttempted = $false
+    } else {
         $live = Test-DeriveEndpoint $deriveUrl
+        $startAttempted = $false
+        if (-not $live) {
+            $startAttempted = $true
+            $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
+            Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) -FailForward | Out-Null
+            Start-Sleep -Milliseconds 600
+            $live = Test-DeriveEndpoint $deriveUrl
+        }
     }
 
     [void]$workers.Add([ordered]@{
@@ -158,7 +169,9 @@ foreach ($session in $sessionPool) {
         session_id = $sessionId
         adopted_existing = [bool]$session.adopted
         derive_url = $deriveUrl
-        snapshot_id = $SnapshotId
+        source = $(if ($ImageMode) { "published_template_image" } else { "snapshot" })
+        image_ref = $(if ($ImageMode) { $ImageRef } else { $null })
+        snapshot_id = $(if ($ImageMode) { $null } else { $SnapshotId })
         authority = $false
         live = [bool]$live
         start_attempted = $startAttempted
@@ -168,6 +181,7 @@ foreach ($session in $sessionPool) {
 
 $liveWorkers = @($workers | Where-Object { $_.live -eq $true -and $_.derive_url })
 $env:TENKI_SWARM_WIDTH = [string]$Width
+if ($ImageMode) { $env:TENKI_IMAGE_REF = $ImageRef }
 if ($liveWorkers.Count -gt 0) {
     $env:TENKI_DERIVE_URLS = (($liveWorkers | ForEach-Object { $_.derive_url }) -join ',')
     $env:TENKI_DERIVE_URL = $liveWorkers[0].derive_url
@@ -179,7 +193,9 @@ if ($liveWorkers.Count -gt 0) {
 $result = [ordered]@{
     status = $(if ($liveWorkers.Count -eq $Width) { "READY_FOR_LIVE_PROOF" } else { "PARTIAL" })
     platform = "Tenki"
-    snapshot_id = $SnapshotId
+    launch_mode = $(if ($ImageMode) { "published_template_image" } else { "snapshot" })
+    image_ref = $(if ($ImageMode) { $ImageRef } else { $null })
+    snapshot_id = $(if ($ImageMode) { $null } else { $SnapshotId })
     replica_width = $Width
     session_pool = $sessionPool.Count
     live_replicas = $liveWorkers.Count
@@ -193,6 +209,4 @@ $result = [ordered]@{
 $result | ConvertTo-Json -Depth 6
 
 Write-Host "Tenki pool complete: $($liveWorkers.Count)/$Width live replicas."
-if ($liveWorkers.Count -gt 0) {
-    Write-Host "Live endpoints exported in this PowerShell session."
-}
+if ($liveWorkers.Count -gt 0) { Write-Host "Live endpoints exported in this PowerShell session." }

@@ -188,10 +188,11 @@ if ($RunGate0) {
 }
 
 if ($RunSteward) {
-    Write-State "STEWARD_RUN" "STARTING" @{ swarm_native = $true; authority = $false }
-    & python ".\scripts\prove_steward.py"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Deterministic Steward proof failed with exit code $LASTEXITCODE"
+    Write-State "STEWARD_RUN" "IMPLEMENTATION_PENDING" @{
+        implemented = $false
+        authority = $false
+        gate0_requirement = $false
+        tenki_alias = $false
+        cotal_alias = $false
     }
-    Write-State "STEWARD_RUN" "PASS" @{ implemented = $true; swarm_native = $true; authority = $false }
 }

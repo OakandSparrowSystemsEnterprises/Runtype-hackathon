@@ -223,6 +223,7 @@ def run_demo(target_url, intent):
         "artifact_ref": artifact_ref,
         "requested_effect": REQUESTED_EFFECT,
         "effect_principal": EFFECT_PRINCIPAL,
+        "target_url": target_url,
         "agent_a": {
             "authenticated": agent_a_status == 403,
             "authorized": False,
@@ -274,7 +275,8 @@ class DemoHandler(BaseHTTPRequestHandler):
                 "service": "gatekeeper-demo-orchestrator",
                 "arena": True,
                 "progressive_evidence": True,
-                "tenki_dynamic_derive": True
+                "tenki_dynamic_derive": True,
+                "sponsor_aisa_mitosis": True
             })
 
         return self.send_json(404, {"error": "not_found"})
