@@ -4,6 +4,8 @@ param(
     [string]$WslDistribution = "Ubuntu-24.04",
     [string]$TenkiCli = "/home/ankou/.local/bin/tenki",
     [string]$WorkerCommand = "python3 /home/tenki/gatekeeper-tenki/worker.py",
+    [string[]]$ExistingSessionIds = @(),
+    [int]$Retries = 3,
     [switch]$Sticky
 )
 
@@ -11,13 +13,39 @@ $ErrorActionPreference = "Stop"
 if ($Width -lt 2 -or $Width -gt 16) {
     throw "Width must be between 2 and 16"
 }
+if ($ExistingSessionIds.Count -gt $Width) {
+    throw "ExistingSessionIds cannot exceed requested Width"
+}
+if ($Retries -lt 1 -or $Retries -gt 8) {
+    throw "Retries must be between 1 and 8"
+}
 
 function Invoke-Tenki([string[]]$Arguments) {
-    $output = & wsl.exe -d $WslDistribution -- $TenkiCli @Arguments 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Tenki command failed: $($Arguments -join ' ')`n$($output -join "`n")"
+    $lastOutput = @()
+    for ($attempt = 1; $attempt -le $Retries; $attempt++) {
+        $output = & wsl.exe -d $WslDistribution -- $TenkiCli @Arguments 2>&1
+        $exitCode = $LASTEXITCODE
+        $lastOutput = @($output)
+        if ($exitCode -eq 0) {
+            return $lastOutput
+        }
+
+        $joined = ($lastOutput -join "`n")
+        $transient = (
+            $joined -match 'write envelope: EOF' -or
+            $joined -match 'unexpected EOF' -or
+            $joined -match 'connection reset' -or
+            $joined -match 'temporarily unavailable'
+        )
+        if (-not $transient -or $attempt -eq $Retries) {
+            throw "Tenki command failed after $attempt attempt(s): $($Arguments -join ' ')`n$joined"
+        }
+
+        $delayMs = 500 * $attempt
+        Write-Host "Tenki transport retry $attempt/$Retries after transient failure..."
+        Start-Sleep -Milliseconds $delayMs
     }
-    return @($output)
+    throw "Tenki command failed: $($Arguments -join ' ')`n$($lastOutput -join "`n")"
 }
 
 function Extract-SessionId([string[]]$Lines) {
@@ -40,24 +68,30 @@ function Extract-PreviewUrl([string[]]$Lines) {
 
 $workers = @()
 for ($index = 0; $index -lt $Width; $index++) {
-    $name = "gatekeeper-goi-swarm-$('{0:d2}' -f $index)"
-    $createArgs = @(
-        "sandbox", "create",
-        "--snapshot", $SnapshotId,
-        "--name", $name,
-        "--metadata", "oasse_role=goi-replica",
-        "--metadata", "oasse_replica=$index"
-    )
-    if ($Sticky) {
-        $createArgs += "--sticky"
+    $adopted = $index -lt $ExistingSessionIds.Count
+    if ($adopted) {
+        $sessionId = $ExistingSessionIds[$index]
+        Write-Host "Adopting existing Tenki replica $index/$($Width - 1): $sessionId"
+    } else {
+        $name = "gatekeeper-goi-swarm-$('{0:d2}' -f $index)"
+        $createArgs = @(
+            "sandbox", "create",
+            "--snapshot", $SnapshotId,
+            "--name", $name,
+            "--metadata", "oasse_role=goi-replica",
+            "--metadata", "oasse_replica=$index"
+        )
+        if ($Sticky) {
+            $createArgs += "--sticky"
+        }
+
+        Write-Host "Launching Tenki replica $index/$($Width - 1)..."
+        $sessionId = Extract-SessionId (Invoke-Tenki $createArgs)
+
+        $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
+        Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) | Out-Null
+        Start-Sleep -Milliseconds 500
     }
-
-    Write-Host "Launching Tenki replica $index/$($Width - 1)..."
-    $sessionId = Extract-SessionId (Invoke-Tenki $createArgs)
-
-    $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
-    Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) | Out-Null
-    Start-Sleep -Milliseconds 500
 
     $preview = Extract-PreviewUrl (
         Invoke-Tenki @("sandbox", "expose", "--session", $sessionId, "--port", "8080")
@@ -67,6 +101,7 @@ for ($index = 0; $index -lt $Width; $index++) {
     $workers += [ordered]@{
         replica_index = $index
         session_id = $sessionId
+        adopted_existing = $adopted
         preview_url = $preview
         derive_url = $deriveUrl
         snapshot_id = $SnapshotId
@@ -83,6 +118,8 @@ $result = [ordered]@{
     platform = "Tenki"
     snapshot_id = $SnapshotId
     replica_width = $Width
+    adopted_existing = $ExistingSessionIds.Count
+    created_new = $Width - $ExistingSessionIds.Count
     authority = $false
     sessions = $workers
     env = [ordered]@{
