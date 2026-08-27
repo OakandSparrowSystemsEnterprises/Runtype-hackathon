@@ -215,7 +215,7 @@ def run_demo(target_url, intent):
 
 
 class DemoHandler(BaseHTTPRequestHandler):
-    server_version = "GatekeeperDemoOrchestrator/0.2"
+    server_version = "GatekeeperDemoOrchestrator/0.3"
 
     def send_json(self, status, payload):
         raw = json.dumps(
@@ -268,13 +268,14 @@ class DemoHandler(BaseHTTPRequestHandler):
             "navigate using handed-off artifact"
         )
 
+        arena_requested = (
+            self.path == "/api/demo/arena"
+            or supplied.get("mode") == "arena"
+        )
+
         try:
             base_result = run_demo(target_url, intent)
-            result = (
-                run_arena(base_result)
-                if self.path == "/api/demo/arena"
-                else base_result
-            )
+            result = run_arena(base_result) if arena_requested else base_result
         except Exception as exc:
             return self.send_json(500, {
                 "error": "demo_orchestrator_failure",
