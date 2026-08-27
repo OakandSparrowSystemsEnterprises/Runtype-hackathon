@@ -108,7 +108,7 @@ function Discover-TenkiSessions {
         if ($items.Count -eq 0) { $items = @($parsed) }
     }
 
-    $matches = @()
+    $sessionMatches = New-Object System.Collections.ArrayList
     foreach ($item in $items) {
         $id = Get-PropertyValue $item @("session_id", "sessionId", "id")
         $name = Get-PropertyValue $item @("name", "session_name", "sessionName")
@@ -117,10 +117,14 @@ function Discover-TenkiSessions {
         $statusText = if ($status) { "$status".ToUpperInvariant() } else { "" }
         $active = (-not $statusText) -or $statusText -in @("RUNNING", "ACTIVE", "READY")
         if ($id -and $active -and $nameText -match '^gatekeeper-goi') {
-            $matches += [pscustomobject]@{ id = "$id"; name = $nameText; status = $statusText }
+            [void]$sessionMatches.Add([pscustomobject]@{
+                id = "$id"
+                name = $nameText
+                status = $statusText
+            })
         }
     }
-    return @($matches | Sort-Object name, id)
+    return @($sessionMatches | Sort-Object name, id)
 }
 
 if (-not $NoAutoDiscover -and $ExistingSessionIds.Count -lt $Width) {
