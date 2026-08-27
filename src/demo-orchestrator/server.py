@@ -24,6 +24,9 @@ ACTION_URL = os.environ.get(
     "http://127.0.0.1:8082/api/v2/actions/navigation"
 )
 
+REQUESTED_EFFECT = "parent-shield.navigation"
+EFFECT_PRINCIPAL = "agent-b"
+
 try:
     AGENT_KEYS = json.loads(
         os.environ.get("GATEKEEPER_AGENT_KEYS_JSON", "{}")
@@ -181,14 +184,14 @@ def run_demo(target_url, intent):
     timeline.append({
         "stage": "artifact_handoff",
         "from": "agent-a",
-        "to": "agent-b",
+        "to": EFFECT_PRINCIPAL,
         "artifact_ref": artifact_ref,
         "authority_transferred": False
     })
 
     agent_b_headers = {
         "Content-Type": "application/json",
-        **signature_headers("agent-b", action_raw)
+        **signature_headers(EFFECT_PRINCIPAL, action_raw)
     }
 
     agent_b_status, agent_b_result = request_json(
@@ -199,7 +202,7 @@ def run_demo(target_url, intent):
 
     timeline.append({
         "stage": "agent_b_action",
-        "principal": "agent-b",
+        "principal": EFFECT_PRINCIPAL,
         "artifact_ref": artifact_ref,
         "status": agent_b_status,
         "result": agent_b_result
@@ -218,12 +221,15 @@ def run_demo(target_url, intent):
         "run_id": run_id,
         "thesis": "The artifact can move. Authority cannot.",
         "artifact_ref": artifact_ref,
+        "requested_effect": REQUESTED_EFFECT,
+        "effect_principal": EFFECT_PRINCIPAL,
         "agent_a": {
             "authenticated": agent_a_status == 403,
             "authorized": False,
             "status": agent_a_status
         },
         "agent_b": {
+            "principal": EFFECT_PRINCIPAL,
             "authenticated": agent_b_status == 200,
             "authorized_to_request": agent_b_status == 200,
             "status": agent_b_status
@@ -247,7 +253,7 @@ def run_demo(target_url, intent):
 
 
 class DemoHandler(BaseHTTPRequestHandler):
-    server_version = "GatekeeperDemoOrchestrator/0.5"
+    server_version = "GatekeeperDemoOrchestrator/0.6"
 
     def send_json(self, status, payload):
         raw = json.dumps(
@@ -268,7 +274,7 @@ class DemoHandler(BaseHTTPRequestHandler):
                 "service": "gatekeeper-demo-orchestrator",
                 "arena": True,
                 "progressive_evidence": True,
-                "tenki_swarm_contract": True
+                "tenki_dynamic_derive": True
             })
 
         return self.send_json(404, {"error": "not_found"})
