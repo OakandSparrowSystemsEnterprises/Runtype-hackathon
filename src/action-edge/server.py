@@ -23,6 +23,9 @@ MAX_BODY_BYTES = int(os.environ.get("ACTION_MAX_BYTES", "65536"))
 AUTH_MAX_SKEW_SECONDS = int(
     os.environ.get("AGENT_AUTH_MAX_SKEW_SECONDS", "300")
 )
+UPSTREAM_HEALTH_TIMEOUT_SECONDS = float(
+    os.environ.get("ACTION_UPSTREAM_HEALTH_TIMEOUT_SECONDS", "3")
+)
 
 CAPABILITY = "parent-shield.navigation"
 
@@ -76,6 +79,66 @@ def verify_agent(headers, digest):
     }, None
 
 
+def probe_gatekeeper_upstream():
+    started = time.perf_counter()
+    request = urllib.request.Request(
+        GATEKEEPER_BASE_URL + "/health",
+        headers={"Accept": "application/json"},
+        method="GET"
+    )
+
+    try:
+        with urllib.request.urlopen(
+            request,
+            timeout=UPSTREAM_HEALTH_TIMEOUT_SECONDS
+        ) as response:
+            raw = response.read().decode("utf-8", errors="replace")
+            try:
+                body = json.loads(raw)
+            except json.JSONDecodeError:
+                body = {}
+
+            mounts = body.get("routeMounts") if isinstance(body, dict) else None
+            parent_shield_mounted = (
+                isinstance(mounts, list)
+                and "parent-shield" in mounts
+            )
+            healthy = response.status == 200 and parent_shield_mounted
+
+            return 200 if healthy else 503, {
+                "status": "ok" if healthy else "degraded",
+                "service": "gatekeeper-agent-action-edge",
+                "upstream": "gatekeeper-v2",
+                "reachable_from_action_edge": True,
+                "upstream_http_status": response.status,
+                "parent_shield_mounted": parent_shield_mounted,
+                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+                "runtime_identity_proven": False
+            }
+    except urllib.error.HTTPError as exc:
+        return 503, {
+            "status": "degraded",
+            "service": "gatekeeper-agent-action-edge",
+            "upstream": "gatekeeper-v2",
+            "reachable_from_action_edge": True,
+            "upstream_http_status": exc.code,
+            "parent_shield_mounted": False,
+            "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            "runtime_identity_proven": False
+        }
+    except urllib.error.URLError as exc:
+        return 503, {
+            "status": "unreachable",
+            "service": "gatekeeper-agent-action-edge",
+            "upstream": "gatekeeper-v2",
+            "reachable_from_action_edge": False,
+            "parent_shield_mounted": False,
+            "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            "runtime_identity_proven": False,
+            "error_class": type(exc.reason).__name__
+        }
+
+
 class ActionHandler(BaseHTTPRequestHandler):
     server_version = "GatekeeperAgentActionEdge/0.1"
 
@@ -94,6 +157,10 @@ class ActionHandler(BaseHTTPRequestHandler):
                 "service": "gatekeeper-agent-action-edge",
                 "capability": CAPABILITY
             })
+
+        if self.path == "/health/upstream":
+            status, payload = probe_gatekeeper_upstream()
+            return self.send_json(status, payload)
 
         return self.send_json(404, {"error": "not_found"})
 
