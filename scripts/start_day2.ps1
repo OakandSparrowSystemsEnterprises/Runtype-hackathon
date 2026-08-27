@@ -3,6 +3,7 @@ param(
     [switch]$GenerateDemoKeys,
     [switch]$SkipPublicEdge,
     [switch]$RunGate0,
+    [switch]$RunSteward,
     [string]$TenkiDeriveUrl = $env:TENKI_DERIVE_URL
 )
 
@@ -184,4 +185,13 @@ if ($RunGate0) {
         throw "Gate 0 proof failed with exit code $LASTEXITCODE"
     }
     Write-State "GATE0_RUN" "PASS" @{ core_authority_proof = $true }
+}
+
+if ($RunSteward) {
+    Write-State "STEWARD_RUN" "STARTING" @{ swarm_native = $true; authority = $false }
+    & python ".\scripts\prove_steward.py"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Deterministic Steward proof failed with exit code $LASTEXITCODE"
+    }
+    Write-State "STEWARD_RUN" "PASS" @{ implemented = $true; swarm_native = $true; authority = $false }
 }
