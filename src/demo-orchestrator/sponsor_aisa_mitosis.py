@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import urllib.error
@@ -45,6 +46,36 @@ def _call_aisa(api_key, query, timeout=20):
     return payload
 
 
+def _parse_mi_output(raw):
+    """Parse `mi cortex remember` stdout.
+
+    The installed mi CLI (v0.24.1) has no --json flag; it emits JSON on stdout
+    by itself, so try that first and fall back to `key: value` lines.
+    """
+    text = (raw or "").strip()
+    if not text:
+        return {"status": "ok"}
+    try:
+        payload = json.loads(text)
+        if isinstance(payload, dict):
+            return payload
+    except json.JSONDecodeError:
+        pass
+    parsed = {}
+    for line in text.splitlines():
+        match = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_ -]*?)\s*:\s*(.+?)\s*$", line)
+        if not match:
+            continue
+        key = match.group(1).strip().lower().replace(" ", "_").replace("-", "_")
+        value = match.group(2).strip()
+        if value.lower() in ("true", "false"):
+            value = value.lower() == "true"
+        parsed[key] = value
+    if parsed:
+        return parsed
+    return {"status": "ok", "raw_excerpt": text[:200]}
+
+
 def _remember_with_mitosis(office_id, evidence_text, agent="oasse-hackathon"):
     cli = shutil.which("mi") or shutil.which("mi.cmd")
     if not cli:
@@ -62,7 +93,6 @@ def _remember_with_mitosis(office_id, evidence_text, agent="oasse-hackathon"):
         "observation",
         "--confidence",
         "1",
-        "--json",
     ]
     completed = subprocess.run(
         command,
@@ -74,8 +104,7 @@ def _remember_with_mitosis(office_id, evidence_text, agent="oasse-hackathon"):
     if completed.returncode != 0:
         detail = (completed.stderr or completed.stdout or "Mitosis command failed").strip()
         raise RuntimeError(detail[-800:])
-    raw = completed.stdout.strip()
-    return json.loads(raw) if raw else {"status": "ok"}
+    return _parse_mi_output(completed.stdout)
 
 
 def run_aisa_mitosis_evidence(query=None):
@@ -139,6 +168,7 @@ def run_aisa_mitosis_evidence(query=None):
             "live": True,
             "office_id": office_id,
             "write_status": mitosis_payload.get("status"),
+            "embedded": mitosis_payload.get("embedded"),
             "universal_id": mitosis_payload.get("universal_id"),
         },
         "gatekeeper_authority_required_for_effects": True,
