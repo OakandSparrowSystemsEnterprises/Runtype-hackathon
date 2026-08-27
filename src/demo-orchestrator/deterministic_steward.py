@@ -76,19 +76,21 @@ def _run_worker(spec, artifact_ref, requested_effect, principal):
         error = f"{type(exc).__name__}: {exc}"
 
     elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
-    result = {
+    semantic_result = {
         "worker_id": spec["worker_id"],
         "role": spec["role"],
         "plane": spec["plane"],
         "status": status,
         "live": live,
         "authority": False,
-        "elapsed_ms": elapsed_ms,
         "error": error,
         "output": output,
     }
-    result["result_hash"] = _digest(result)
-    return result
+    return {
+        **semantic_result,
+        "elapsed_ms": elapsed_ms,
+        "result_hash": _digest(semantic_result),
+    }
 
 
 def run_deterministic_steward(artifact_ref, requested_effect, principal):
@@ -110,8 +112,8 @@ def run_deterministic_steward(artifact_ref, requested_effect, principal):
         for future in as_completed(futures):
             results.append(future.result())
 
-    # Completion order is intentionally discarded. The aggregate is always
-    # re-derived in worker_id order so concurrency cannot alter Steward state.
+    # Completion order and worker timing are intentionally excluded from the
+    # deterministic state. Both remain visible as provenance.
     results.sort(key=lambda item: item["worker_id"])
     live_workers = sum(1 for item in results if item["live"])
     failed_workers = sum(1 for item in results if item["status"] == "FAILED")
