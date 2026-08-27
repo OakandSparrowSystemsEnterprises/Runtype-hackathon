@@ -344,6 +344,8 @@ class ActionHandler(BaseHTTPRequestHandler):
             "artifact_ref": artifact_ref,
             "request_sha256": request_digest,
             "authority_transfer_from_artifact": False,
+            "gatekeeper_upstream_latency_ms": upstream_latency_ms,
+            "runtime_identity_proven": False,
             "gatekeeper": gatekeeper
         })
 
