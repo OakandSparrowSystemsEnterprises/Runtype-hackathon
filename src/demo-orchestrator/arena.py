@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -268,10 +269,22 @@ def run_cotal_probe(artifact_ref):
         "requested_effect=parent-shield.navigation"
     )
 
-    steward_assignment = _cotal_send("steward", "msg", "swarm", assignment)
-    agent_a_handoff = _cotal_send("agent-a", "msg", "artifacts", handoff)
-    agent_a_execution = _cotal_send("agent-a", "msg", "execution", execution)
-    agent_b_execution = _cotal_send("agent-b", "msg", "execution", execution)
+    # These four broker checks are independent authorization probes. Running
+    # them concurrently preserves each principal/channel result while avoiding
+    # four sequential npx startup costs on Windows.
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = {
+            "steward_assignment": pool.submit(_cotal_send, "steward", "msg", "swarm", assignment),
+            "agent_a_handoff": pool.submit(_cotal_send, "agent-a", "msg", "artifacts", handoff),
+            "agent_a_execution": pool.submit(_cotal_send, "agent-a", "msg", "execution", execution),
+            "agent_b_execution": pool.submit(_cotal_send, "agent-b", "msg", "execution", execution),
+        }
+        results = {name: future.result() for name, future in futures.items()}
+
+    steward_assignment = results["steward_assignment"]
+    agent_a_handoff = results["agent_a_handoff"]
+    agent_a_execution = results["agent_a_execution"]
+    agent_b_execution = results["agent_b_execution"]
 
     return {
         "ok": (
