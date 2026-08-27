@@ -69,7 +69,11 @@ AIsa.ONE x Mitosis: **REPOSITORY ADAPTER READY / LIVE PROOF PENDING**. Two compl
 
 Neither path emits permit, token, capability grant, or Gatekeeper verdict fields; both keep `authority=false`. A sponsor result becomes `LIVE` only when both its real AIsa call and real Mitosis write complete.
 
-Cloudflare: **PENDING REAL INTEGRATION/PROOF**. Nebius: **OPTIONAL / PENDING**. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
+Cloudflare: **EDGE SCRIPT READY / LIVE PROOF PENDING**. `scripts/start_cloudflare_edge.ps1` starts a real Cloudflare-operated quick tunnel in front of the nginx public edge, exports `CLOUDFLARE_PUBLIC_EDGE`, and probes the tunnel for a `cf-ray` response header as proof Cloudflare is actually in the request path (reported honestly as `mode=quick-tunnel`). The Arena's CLOUDFLARE EDGE chip flips only on that same runtime evidence (`cf-ray` on the page's own API responses). Nebius: **OPTIONAL / NOT IN PATH** — declared additive, not critical-path. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
+
+## Judge UX and submission package
+
+`SUBMISSION.md` is the judge-facing package: 60-second demo path, sponsor architecture, invariants, and run instructions. The Day 2 Arena now has a **RUN DENIED PATH** control: it submits a boundary-restricted URL through the identical pipeline and renders Gatekeeper's deny/hold with its rule id and sealed receipt — and truthfully reports "URL WAS PERMITTED" if the chosen URL is not actually blocked by the pack (pick a clearly adult/gambling URL before demoing). Denials are presented under the same receipt discipline as permits. All chips (Tenki, AIsa × Mitosis, Cloudflare) flip only from current-run runtime evidence.
 
 ## V2 pin
 
@@ -77,7 +81,9 @@ Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8
 
 ## Verification and CI
 
-Live local Core Gate 0 proof is verified. Live signed public-edge action is verified and the public-edge track is closed. The direct fresh Tenki binding path is restored repository-side and still needs one live local run against a template-started Tenki worker. Cotal remains LIVE where already proven. Deterministic Steward remains IMPLEMENTATION PENDING. AIsa.ONE x Mitosis has a repository-side adapter and targeted behavioral harness pass, but remains PENDING until real credentials and a real Mitosis write are exercised locally.
+Live local Core Gate 0 proof is verified. Live signed public-edge action is verified and the public-edge track is closed. The direct fresh Tenki binding path is restored repository-side and still needs one live local run against a template-started Tenki worker. Cotal remains LIVE where already proven. Deterministic Steward remains IMPLEMENTATION PENDING. AIsa.ONE x Mitosis has two repository-side adapters with passing behavioral harnesses, but remains PENDING until real credentials and a real Mitosis write are exercised locally.
+
+Active-contract unit suites are green: `test_evidence_pipeline.py` (verdict preservation, plane isolation, current-run identity binding, sponsor never gating core evidence), `test_tenki_swarm.py` (claim binding to the current artifact/effect/principal, non-authority enforcement, honest PENDING without endpoints, two-replica consensus semantics), `test_aisa_mitosis.py`, and `test_sponsor_aisa_mitosis.py`. `test_deterministic_steward.py` tracks the explicitly out-of-contract experimental Steward module and is not part of the active runtime contract.
 
 **CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** Gatekeeper-V2-NPU was not modified.
 
