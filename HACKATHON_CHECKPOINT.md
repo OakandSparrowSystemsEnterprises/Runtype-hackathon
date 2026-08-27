@@ -22,23 +22,29 @@ Complete authority-transfer proof: `105.62 ms`.
 
 Verified stages: V2 source pin PASS; fresh immutable ArtifactRef PASS; Agent A authenticated and denied with HTTP 403; same ArtifactRef handoff with `authority_transfer_from_artifact=false`; Agent B independently governed with HTTP 200; Gatekeeper `formal=permit` and `execution=allowed`; sealed receipt PASS; progressive evidence PASS; verdict preservation PASS; final `GATE_0` PASS with `authority_invariant=PASS` and `sponsor_development_unblocked=true`.
 
-The canonical Windows launcher is `scripts/start_day2.ps1`. It starts the artifact boundary, action edge, orchestrator, and nginx public edge in one aligned environment, can generate ephemeral hackathon HMAC identities without printing them, checks V2 and action-edge upstream health, and with `-RunGate0` executes the fresh authority proof in the same environment.
+The canonical Windows launcher is `scripts/start_day2.ps1`. It starts the artifact boundary, action edge, arena orchestrator, and nginx public edge in one aligned environment, can generate ephemeral hackathon HMAC identities without printing them, checks V2 and action-edge upstream health, and can run Gate 0 or the Steward proof in the same environment.
 
 ## Deterministic Steward
 
-Status: **IMPLEMENTATION PENDING**.
+Status: **IMPLEMENTED / LIVE PARTIAL PROOF VERIFIED**.
 
-The Deterministic Steward is settled design and remains unimplemented. Tenki is not the Steward. Cotal is not the Steward. A Tenki worker, Cotal coordinator, sponsor adapter, or evidence aggregator must never be relabeled as the Deterministic Steward. The live Gate 0 proof correctly reports `IMPLEMENTATION_PENDING`, `authority=false`, and `core_gate_blocking=false`.
+The Steward is now real repository code in `src/demo-orchestrator/deterministic_steward.py`; it is no longer inferred from Tenki status. The latest local proof returned `implemented=true`, `swarm_native=true`, `authority=false`, a stable `plan_id`, a deterministic `state_hash`, Cotal coordination worker PASS, and no failed workers. That proof was PARTIAL only because no live Tenki swarm endpoints were configured in that shell.
+
+The Steward now plans one Cotal coordination worker plus a fixed-width Tenki replica pool. The default Tenki width is four, so the default plan is five first-class workers. Completion order and timing remain visible provenance but are excluded from deterministic state hashing. Worker failures are isolated and preserved rather than collapsing the whole aggregate. Gatekeeper remains the only authority source for effects.
+
+Key commits: `5905a19f3fb2ea7beee32b1c78f169073d239e5a` initial Steward module; `d8fab4ed8a11322522690393b8180c88e2537ffd` deterministic hash-boundary correction; `9701c3e1bd12d7428d377005e53deb007ef50f7a` first-class Tenki replica workers; `c7b1d95c01767bd1c8de2c15af5d921a7c91c9f3` live proof upgraded to require replica consensus when endpoints are configured.
 
 ## Tenki
 
-Platform/runtime status: **LIVE VERIFIED**. Fresh per-run binding status for the current canonical Gate 0 artifact: **PENDING / non-blocking**.
+Platform/runtime status: **LIVE VERIFIED**. Multi-replica swarm runtime status: **READY TO LAUNCH / LIVE PROOF PENDING**.
 
-Known-good snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098`; sandbox/session `01a043be-5240-7bb3-a336-df794b64e56c`; worker port 8080. `POST /derive` previously succeeded with exact request fields `artifact_ref`, `artifact_sha256`, `requested_effect`, and `principal`. Tenki remains non-authoritative evidence with `authority=false`, `compute_plane=tenki`, and `role=derived_claim_only`.
+Known-good snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098`; historical successful sandbox/session `01a043be-5240-7bb3-a336-df794b64e56c`; worker port 8080. `POST /derive` previously succeeded with exact request fields `artifact_ref`, `artifact_sha256`, `requested_effect`, and `principal`. Tenki remains non-authoritative evidence with `authority=false`, `compute_plane=tenki`, and `role=derived_claim_only`.
+
+The new Tenki workload is a deterministic replica swarm, not invented worker semantics. Every replica independently receives the same exact governed `/derive` request for the fresh ArtifactRef/effect/principal. The Steward requires claim-hash consensus and preserves failed/pending replicas independently. Full Tenki swarm LIVE requires the configured replica width to complete against distinct live `/derive` endpoints.
+
+`scripts/launch_tenki_swarm.ps1` now restores multiple sandboxes from the verified snapshot, starts `python3 /home/tenki/gatekeeper-tenki/worker.py` in each sandbox, exposes port 8080, collects the returned preview URLs, and populates `TENKI_DERIVE_URLS` plus `TENKI_SWARM_WIDTH` for the current PowerShell session. Commits: `319954f14a837560d12aa8c8f35ac3fc7237465e` replica-swarm runtime; `8b58a923ae58da421b4c51b980bdfb6a31e4a9f2` real Tenki sandbox launcher; `2fcf8cc264ae2856883cf244580ed4b8ae4b48a9` launcher compatibility pointer.
 
 Historical ArtifactRef `sha256:5386fdfcbc233f3b8da8ba274651d2174aa233e88dc4d35948f2189923f652e5` is historical evidence only and must never be replayed for a new artifact.
-
-Dynamic per-run binding is committed in `07a8d9c3cb2ce2b402dbe490232815159d0d0d49`, evidence forwarding in `daf388ee18ee51d5a1ef8b60cdc8094f9ee802c4`, current effect/principal binding in `eff2f1e004ea86b7f3d65c89cee4840c816c9dd8`, regression coverage in `bbbbbc306c7812d207dcc85ef0e23df328e59ab1` and `99bd9736fe4d3c14d2824b5674dc8c97d176d43f`, and judge UI in `130da411c856a35c3581ba089784687f59dc9563`.
 
 ## Cotal
 
@@ -64,10 +70,10 @@ Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8
 
 ## Verification and CI
 
-Live local Core Gate 0 proof is verified. Live signed public-edge action is verified. Existing executable evidence also includes the targeted Tenki authority-boundary tests, progressive evidence isolation tests, and nine-case signed-action diagnostic classifier suite.
+Live local Core Gate 0 proof is verified. Live signed public-edge action is verified. Deterministic Steward implementation has a live PARTIAL proof with Cotal active and Tenki replicas pending. The next live proof is the four-replica Tenki swarm consensus run.
 
 **CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** Gatekeeper-V2-NPU was not modified.
 
 ## Next action
 
-Core authority proof and signed public-edge closure are complete. Advance independent sponsor and judge-facing integration work while refreshing live Tenki per-run evidence when the worker endpoint is available. Preserve the separation: Gatekeeper grants authority; Tenki computes derived evidence; Cotal coordinates; the Deterministic Steward remains implementation-pending until it actually exists.
+Launch the real Tenki replica swarm from the verified snapshot in the current PowerShell session, then rerun the canonical Steward proof. Full Steward LIVE requires Cotal coordination plus all configured Tenki replicas completing with deterministic GOI claim-hash consensus while every worker remains `authority=false`.
