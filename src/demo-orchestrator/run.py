@@ -4,7 +4,7 @@ import subprocess
 
 import arena
 import server
-from security_probes import run_chain_verification_probe
+from security_probes import run_chain_verification_probe, run_idempotency_probe
 
 PORT = server.PORT
 DemoHandler = server.DemoHandler
@@ -64,15 +64,21 @@ _base_run_arena = arena.run_arena
 def _run_arena_with_security(base_demo):
     result = _base_run_arena(base_demo)
     chain_verification = run_chain_verification_probe()
+    idempotency = run_idempotency_probe()
     result["security"] = {
         "chain_verification": chain_verification,
+        "idempotency": idempotency,
     }
-    result["ok"] = bool(result.get("ok")) and chain_verification["ok"]
+    result["ok"] = (
+        bool(result.get("ok"))
+        and chain_verification["ok"]
+        and idempotency["ok"]
+    )
     return result
 
 
 # server imported run_arena by value, so patch both references used by the
-# runtime after adding the live security probe.
+# runtime after adding the live security probes.
 arena.run_arena = _run_arena_with_security
 server.run_arena = _run_arena_with_security
 
