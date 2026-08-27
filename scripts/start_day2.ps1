@@ -1,7 +1,8 @@
 param(
     [switch]$Restart,
     [switch]$GenerateDemoKeys,
-    [switch]$SkipPublicEdge
+    [switch]$SkipPublicEdge,
+    [switch]$RunGate0
 )
 
 $ErrorActionPreference = "Stop"
@@ -139,7 +140,7 @@ if (-not $SkipPublicEdge) {
     $nginxPath = (Resolve-Path ".\nginx.conf").Path
     $containerId = (& docker run -d --rm --name gatekeeper-public-edge -p 8080:8080 --mount "type=bind,source=$nginxPath,target=/etc/nginx/conf.d/default.conf,readonly" nginx:alpine).Trim()
     if (-not $containerId) { throw "failed to start gatekeeper-public-edge nginx container" }
-    $publicHealth = Wait-JsonHealth "http://127.0.0.1:8080/health"
+    Wait-JsonHealth "http://127.0.0.1:8080/health" | Out-Null
     Write-State "public_edge" "READY" @{ container = "gatekeeper-public-edge"; runtime_identity_proven = $false }
 }
 
@@ -150,4 +151,13 @@ Write-State "DAY2_STACK" "READY" @{
     orchestrator = "http://127.0.0.1:8083"
     public_edge = $(if ($SkipPublicEdge) { "SKIPPED" } else { "http://127.0.0.1:8080" })
     diagnostic_secret_printed = $false
+}
+
+if ($RunGate0) {
+    Write-State "GATE0_RUN" "STARTING" @{ fresh_artifact = $true }
+    & python ".\scripts\prove_gate0.py"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Gate 0 proof failed with exit code $LASTEXITCODE"
+    }
+    Write-State "GATE0_RUN" "PASS" @{ core_authority_proof = $true }
 }
