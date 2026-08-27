@@ -73,7 +73,7 @@ def main():
         and steward.get("authority") is False,
         "steward_contract",
         "Deterministic Steward contract not active",
-        status=steward.get("status"),
+        steward_status=steward.get("status"),
     )
     require(
         bool(steward.get("plan", {}).get("plan_id"))
