@@ -8,7 +8,8 @@ param(
     [string[]]$ExistingSessionIds = @(),
     [int]$Retries = 3,
     [switch]$Sticky,
-    [switch]$NoAutoDiscover
+    [switch]$NoAutoDiscover,
+    [switch]$InsecureTls
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +18,14 @@ if ($ExistingSessionIds.Count -gt $Width) { throw "ExistingSessionIds cannot exc
 
 $ImageMode = -not [string]::IsNullOrWhiteSpace($ImageRef)
 $SessionPrefix = $(if ($ImageMode) { "gatekeeper-goi-image-swarm" } else { "gatekeeper-goi-swarm" })
+
+if ($InsecureTls) {
+    # Opt-in escape hatch for networks that TLS-intercept *.sb.tenki.sh.
+    # Evidence-plane only: claims stay non-authoritative and content-bound.
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+    $env:TENKI_TLS_INSECURE = "1"
+    Write-Host "WARNING: TLS verification relaxed for Tenki evidence probes (surfaced in results)."
+}
 
 function Invoke-Tenki([string[]]$Arguments, [switch]$FailForward) {
     $lastOutput = @()
@@ -200,6 +209,7 @@ $result = [ordered]@{
     session_pool = $sessionPool.Count
     live_replicas = $liveWorkers.Count
     authority = $false
+    tls_verification_relaxed = [bool]$InsecureTls
     sessions = $workers
     env = [ordered]@{
         TENKI_SWARM_WIDTH = $env:TENKI_SWARM_WIDTH
