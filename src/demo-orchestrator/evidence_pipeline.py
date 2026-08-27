@@ -15,20 +15,27 @@ def _failed_plane(name, exc):
 
 
 def run_progressive_evidence(base_demo):
-    """Resolve slower evidence planes after the Gatekeeper verdict is already known.
-
-    Supporting evidence is deliberately failure-isolated. A Cotal/estate failure or a
-    Tenki runtime failure must not erase an already-sealed Gatekeeper verdict, and one
-    evidence plane must not suppress the result of another.
-    """
+    """Resolve slower evidence planes after the Gatekeeper verdict is already known."""
     artifact_ref = base_demo.get("artifact_ref")
+    requested_effect = base_demo.get("requested_effect")
+    principal = base_demo.get("effect_principal")
+
     if not artifact_ref:
         raise RuntimeError("base demo did not return an artifact_ref")
+    if not requested_effect:
+        raise RuntimeError("base demo did not return requested_effect")
+    if not principal:
+        raise RuntimeError("base demo did not return effect_principal")
 
     started = time.perf_counter()
     with ThreadPoolExecutor(max_workers=2) as pool:
         existing_future = pool.submit(run_arena, base_demo)
-        tenki_future = pool.submit(run_tenki_swarm, artifact_ref)
+        tenki_future = pool.submit(
+            run_tenki_swarm,
+            artifact_ref,
+            requested_effect,
+            principal,
+        )
 
         try:
             existing = existing_future.result()
@@ -52,8 +59,16 @@ def run_progressive_evidence(base_demo):
     elapsed_ms = (time.perf_counter() - started) * 1000
     cotal = existing.get("cotal") or {"ok": False, "status": "UNAVAILABLE"}
     estate = existing.get("estate") or {"ok": False, "status": "UNAVAILABLE"}
-    tenki_live = bool(tenki.get("live")) and tenki.get("status") == "LIVE" and tenki.get("authority") is False
-    evidence_complete = bool(cotal.get("ok")) and bool(estate.get("ok")) and tenki.get("authority") is False
+    tenki_live = (
+        bool(tenki.get("live"))
+        and tenki.get("status") == "LIVE"
+        and tenki.get("authority") is False
+    )
+    evidence_complete = (
+        bool(cotal.get("ok"))
+        and bool(estate.get("ok"))
+        and tenki_live
+    )
 
     return {
         "ok": True,
@@ -71,5 +86,7 @@ def run_progressive_evidence(base_demo):
             "swarm_native": True,
             "authority": False,
             "compute_substrate": "Tenki",
+            "requested_effect": requested_effect,
+            "principal": principal,
         },
     }
