@@ -1,0 +1,7 @@
+{
+  "repository": "OakandSparrowSystemsEnterprises/Gatekeeper-V2-NPU",
+  "commit": "338a126521a8427fe5d1988d0a1381affe8c75bd",
+  "scope": "source_checkout_only",
+  "runtime_identity_proven": false,
+  "notes": "Fail-closed source checkout pin for the Day 2 demo shell. This does not prove the identity of a running V2 image or process."
+}
