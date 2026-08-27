@@ -1,5 +1,5 @@
 param(
-    [int]$Width = 8,
+    [int]$Width = 4,
     [string]$SnapshotId = "07fd77b8-7caf-400e-8e8e-42eb16396098",
     [string]$WslDistribution = "Ubuntu-24.04",
     [string]$TenkiCli = "/home/ankou/.local/bin/tenki",
@@ -127,6 +127,28 @@ function Discover-TenkiSessions {
     return @($sessionMatches | Sort-Object name, id)
 }
 
+function Test-DeriveEndpoint([string]$DeriveUrl) {
+    $probe = @{
+        artifact_ref = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        artifact_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+        requested_effect = "parent-shield.navigation"
+        principal = "agent-b"
+    } | ConvertTo-Json -Compress
+    try {
+        $response = Invoke-RestMethod -Uri $DeriveUrl -Method Post -ContentType "application/json" -Body $probe -TimeoutSec 4
+        return ($response.ok -eq $true -and $response.claim.authority -eq $false)
+    } catch {
+        return $false
+    }
+}
+
+function Get-DeriveUrl([string]$SessionId) {
+    $preview = Extract-PreviewUrl (
+        Invoke-Tenki @("sandbox", "expose", "--session", $SessionId, "--port", "8080")
+    )
+    return "$preview/derive"
+}
+
 if (-not $NoAutoDiscover -and $ExistingSessionIds.Count -lt $Width) {
     $discovered = @(Discover-TenkiSessions)
     $known = New-Object 'System.Collections.Generic.HashSet[string]'
@@ -149,6 +171,7 @@ for ($index = 0; $index -lt $Width; $index++) {
         Write-Host "Adopting existing Tenki replica $index/$($Width - 1): $sessionId"
     } else {
         $name = "gatekeeper-goi-swarm-$('{0:d2}' -f $index)"
+        Write-Host "Launching Tenki replica $index/$($Width - 1)..."
         $createArgs = @(
             "sandbox", "create",
             "--snapshot", $SnapshotId,
@@ -156,31 +179,38 @@ for ($index = 0; $index -lt $Width; $index++) {
             "--metadata", "oasse_role=goi-replica",
             "--metadata", "oasse_replica=$index"
         )
-        if ($Sticky) {
-            $createArgs += "--sticky"
-        }
-
-        Write-Host "Launching Tenki replica $index/$($Width - 1)..."
+        if ($Sticky) { $createArgs += "--sticky" }
         $sessionId = Extract-SessionId (Invoke-Tenki $createArgs)
-
-        $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
-        Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) | Out-Null
-        Start-Sleep -Milliseconds 500
     }
 
-    $preview = Extract-PreviewUrl (
-        Invoke-Tenki @("sandbox", "expose", "--session", $sessionId, "--port", "8080")
-    )
-    $deriveUrl = "$preview/derive"
+    $deriveUrl = Get-DeriveUrl $sessionId
+    $workerReady = Test-DeriveEndpoint $deriveUrl
 
+    if (-not $workerReady) {
+        Write-Host "Replica $index is not serving /derive yet; starting worker..."
+        $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
+        try {
+            Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) | Out-Null
+        } catch {
+            Write-Host "Tenki exec failed for replica $index; re-probing exposed worker before giving up."
+        }
+        Start-Sleep -Seconds 1
+        $workerReady = Test-DeriveEndpoint $deriveUrl
+    }
+
+    if (-not $workerReady) {
+        throw "Tenki replica $index [$sessionId] exists but /derive is not reachable after restore/start attempts"
+    }
+
+    Write-Host "Tenki replica $index LIVE: $sessionId"
     $workers += [ordered]@{
         replica_index = $index
         session_id = $sessionId
         adopted_existing = $adopted
-        preview_url = $preview
         derive_url = $deriveUrl
         snapshot_id = $SnapshotId
         authority = $false
+        live = $true
     }
 }
 
