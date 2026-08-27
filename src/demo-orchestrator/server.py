@@ -10,6 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Lock
 
 from arena import run_arena
+from evidence_pipeline import run_progressive_evidence
 
 PORT = int(os.environ.get("DEMO_ORCHESTRATOR_PORT", "8083"))
 
@@ -237,7 +238,7 @@ def run_demo(target_url, intent):
 
 
 class DemoHandler(BaseHTTPRequestHandler):
-    server_version = "GatekeeperDemoOrchestrator/0.4"
+    server_version = "GatekeeperDemoOrchestrator/0.5"
 
     def send_json(self, status, payload):
         raw = json.dumps(
@@ -257,7 +258,8 @@ class DemoHandler(BaseHTTPRequestHandler):
                 "status": "ok",
                 "service": "gatekeeper-demo-orchestrator",
                 "arena": True,
-                "progressive_evidence": True
+                "progressive_evidence": True,
+                "tenki_swarm_contract": True
             })
 
         return self.send_json(404, {"error": "not_found"})
@@ -298,7 +300,7 @@ class DemoHandler(BaseHTTPRequestHandler):
                 })
 
             try:
-                result = run_arena(base_result)
+                result = run_progressive_evidence(base_result)
             except Exception as exc:
                 return self.send_json(500, {
                     "error": "supporting_evidence_failure",
