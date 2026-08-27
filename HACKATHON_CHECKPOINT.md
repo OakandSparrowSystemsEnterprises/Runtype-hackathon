@@ -10,25 +10,31 @@ The repaired ontology remains V2-owned and is not duplicated here.
 
 ## Core Gate 0
 
-Status: **PENDING LIVE LOCAL PROOF**.
+Status: **PASS — LIVE LOCAL PROOF VERIFIED 2026-08-27**.
 
-Gate 0 is the core authority proof only: V2 source pin, fresh immutable ArtifactRef, Agent A 403, same ArtifactRef handoff, no authority transfer from possession, Agent B 200, real Gatekeeper permit/GREEN/allowed result, sealed artifact hash/receipt, and progressive evidence preserving the already-sealed verdict.
+Live proof ArtifactRef: `sha256:810908125d05ea8eb04edf3607ed0c070f10c04ee84fea3b962d85935e72959e`.
 
-Commit `c64a6b183ecb499da4a784a54b5f7f99cfe86392` corrects `scripts/prove_gate0.py` to this boundary. It also preserves the useful fresh-artifact diagnostic ordering from `9ef8facf7e1875b9e04db1df09165efa8778fa33`: when signed diagnostic credentials are available, the public-edge diagnostic is run against the exact fresh Gate 0 ArtifactRef, but its result is reported as a separate non-blocking edge-proof track.
+Live Gatekeeper receipt: `6d2745727566163f9b65ca1d518e037e3409336b81ece8304e0d38ceea266ce8`.
 
-A fresh Tenki claim, Cotal evidence, the historical public-edge signed-action 502 closure, sponsor integrations, chain verification, idempotency, and the Deterministic Steward implementation are not prerequisites for Core Gate 0. They remain separate supporting, sponsor, or security proof tracks and must not be represented as Gatekeeper authority.
+Live measured Gatekeeper V2 evaluate hop: `36.22 ms`.
+
+Live complete authority-transfer proof: `85.49 ms`.
+
+Verified stages: V2 source pin PASS; fresh immutable ArtifactRef PASS; Agent A authenticated and denied with HTTP 403; same ArtifactRef handoff with `authority_transfer_from_artifact=false`; Agent B independently governed with HTTP 200; Gatekeeper `formal=permit` and `execution=allowed`; sealed receipt PASS; progressive evidence PASS; verdict preservation PASS; final `GATE_0` PASS with `authority_invariant=PASS` and `sponsor_development_unblocked=true`.
+
+Commit `c64a6b183ecb499da4a784a54b5f7f99cfe86392` corrected `scripts/prove_gate0.py` to this boundary. A fresh Tenki claim, Cotal evidence, the historical public-edge signed-action 502 closure, sponsor integrations, chain verification, idempotency, and the Deterministic Steward implementation are not prerequisites for Core Gate 0. They remain separate supporting, sponsor, or security proof tracks and must not be represented as Gatekeeper authority.
 
 ## Deterministic Steward
 
 Status: **IMPLEMENTATION PENDING**.
 
-The Deterministic Steward is settled design and remains unimplemented. Tenki is not the Steward. Cotal is not the Steward. A Tenki worker, Cotal coordinator, sponsor adapter, or evidence aggregator must never be relabeled as the Deterministic Steward. `scripts/prove_gate0.py` now reports this state explicitly and does not require `deterministic_steward.status == LIVE`.
+The Deterministic Steward is settled design and remains unimplemented. Tenki is not the Steward. Cotal is not the Steward. A Tenki worker, Cotal coordinator, sponsor adapter, or evidence aggregator must never be relabeled as the Deterministic Steward. The live Gate 0 proof correctly reported `IMPLEMENTATION_PENDING`, `authority=false`, and `core_gate_blocking=false`.
 
 ## Tenki
 
-Platform/runtime status: **LIVE VERIFIED**. Fresh per-run binding status: **requires local live verification for the current run**.
+Platform/runtime status: **LIVE VERIFIED**. Fresh per-run binding status for the Gate 0 artifact above: **PENDING / non-blocking in that shell**.
 
-Known-good snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098`; sandbox/session `01a043be-5240-7bb3-a336-df794b64e56c`; worker port 8080. `POST /derive` succeeded with exact request fields `artifact_ref`, `artifact_sha256`, `requested_effect`, and `principal`. Tenki remains non-authoritative evidence with `authority=false`, `compute_plane=tenki`, and `role=derived_claim_only`.
+Known-good snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098`; sandbox/session `01a043be-5240-7bb3-a336-df794b64e56c`; worker port 8080. `POST /derive` previously succeeded with exact request fields `artifact_ref`, `artifact_sha256`, `requested_effect`, and `principal`. Tenki remains non-authoritative evidence with `authority=false`, `compute_plane=tenki`, and `role=derived_claim_only`.
 
 Historical ArtifactRef `sha256:5386fdfcbc233f3b8da8ba274651d2174aa233e88dc4d35948f2189923f652e5` is historical evidence only and must never be replayed for a new artifact.
 
@@ -42,26 +48,24 @@ Status: **LIVE where already proven**. Preserve its multi-principal identity/han
 
 Status: **PENDING LIVE CLOSURE** and not a Core Gate 0 blocker.
 
-Missing auth correctly returns `401 missing_agent_auth`. The action edge retains HMAC verification, capability gating, immutable ArtifactRef validation, and the real `action-edge -> GATEKEEPER_BASE_URL -> /api/domains/parent-shield/navigation/evaluate` call-home boundary. `scripts/diagnose_action_edge.py` remains fail-closed for public/action-edge routing and upstream failures. When diagnostic credentials are present, `scripts/prove_gate0.py` now binds that diagnostic to the fresh Gate 0 ArtifactRef and reports `edge_signed_action` independently.
+The public edge is now running through nginx on port 8080. `/health` reaches Gatekeeper V2 successfully and an unsigned `POST /api/v2/actions/navigation` returns the expected `401 missing_agent_auth`, proving public-edge to action-edge routing. The live Gate 0 shell did not have signed diagnostic credentials, so `edge_signed_action` remained `PENDING`, `core_gate_blocking=false`.
 
 Do not mark this track FIXED until a real signed public-edge request succeeds.
 
 ## Sponsor tracks
 
-AIsa.ONE x Mitosis: **PENDING REAL INTEGRATION/PROOF**. Cloudflare: **PENDING REAL INTEGRATION/PROOF**. Nebius: **OPTIONAL / PENDING**. Sponsor development may proceed in isolated feature-flagged paths when independent, but no sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
+AIsa.ONE x Mitosis: **PENDING REAL INTEGRATION/PROOF**. Cloudflare: **PENDING REAL INTEGRATION/PROOF**. Nebius: **OPTIONAL / PENDING**. Core Gate 0 no longer blocks independent sponsor implementation. No sponsor may be shown as LIVE until its own real end-to-end result is proven. Sponsor outputs remain non-authoritative evidence or compute inputs and cannot assert authority, permit, capability, token, or Gatekeeper verdict.
 
 ## V2 pin
 
-Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8c75bd`. `scripts/verify_v2_source_pin.py` remains fail-closed. Runtime process/image identity remains explicitly unproven by the current V2 health contract.
+Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8c75bd`. The live Gate 0 run verified the actual checkout at exactly that commit. `runtime_identity_proven=false` remains explicit because immutable running process/image identity is not exposed by the current V2 health contract.
 
 ## Verification and CI
 
-The committed `scripts/prove_gate0.py` blob `94180fedba5a43ba150b2423a16ec32177d9fc9d` was fetched back from the branch after commit `c64a6b183ecb499da4a784a54b5f7f99cfe86392` and inspected for the corrected core Gate 0 boundary, fresh ArtifactRef creation, optional exact-artifact edge diagnostic, and explicit Deterministic Steward `IMPLEMENTATION_PENDING` state.
+Live local Core Gate 0 proof is now verified and no longer pending. Existing executable evidence also includes the targeted Tenki authority-boundary tests, progressive evidence isolation tests, and nine-case signed-action diagnostic classifier suite.
 
-Existing executable evidence remains the targeted Tenki authority-boundary tests, progressive evidence isolation tests, and nine-case signed-action diagnostic classifier suite. No live localhost proof is claimed from the connector environment.
-
-**CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** No no-op CI trigger was created and Gatekeeper-V2-NPU was not modified.
+**CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** Gatekeeper-V2-NPU was not modified.
 
 ## Next action
 
-Pull branch head and run `python .\scripts\prove_gate0.py` from the active Day 2 shell with `GATEKEEPER_V2_SOURCE_ROOT` set. If the same shell also carries the real agent signing environment, the separate edge 502 diagnostic will run automatically against the fresh artifact without blocking the core authority result.
+Core authority proof is complete. Advance independent sponsor and judge-facing integration work while separately closing the signed public-edge action track and refreshing live Tenki per-run evidence when the worker endpoint is available. Preserve the separation: Gatekeeper grants authority; Tenki computes derived evidence; Cotal coordinates; the Deterministic Steward remains implementation-pending until it actually exists.
