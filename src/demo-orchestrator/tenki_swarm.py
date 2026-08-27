@@ -12,6 +12,14 @@ TENKI_SNAPSHOT_ID = os.environ.get(
 TENKI_STEWARD_URL = os.environ.get("TENKI_STEWARD_URL", "").strip()
 TENKI_STEWARD_TIMEOUT = float(os.environ.get("TENKI_STEWARD_TIMEOUT", "20"))
 
+NON_AUTHORITY_FIELDS = {
+    "authority",
+    "permit",
+    "capability",
+    "token",
+    "gatekeeper_verdict",
+}
+
 
 def build_swarm_plan(artifact_ref):
     """Build the OASSE-owned orchestration contract, not a Tenki API payload."""
@@ -59,6 +67,21 @@ def _pending(plan, reason):
     }
 
 
+def _assert_non_authoritative(value, path="$"):
+    """Reject authority-like assertions anywhere in a Tenki/Steward payload."""
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in NON_AUTHORITY_FIELDS and child not in (None, False):
+                raise RuntimeError(
+                    f"Tenki/Steward response attempted to assert authority at {child_path}"
+                )
+            _assert_non_authoritative(child, child_path)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _assert_non_authoritative(child, f"{path}[{index}]")
+
+
 def _normalize_worker_response(plan, payload, elapsed_ms):
     """
     Normalize an OASSE Steward response after a real Tenki-hosted worker endpoint
@@ -68,9 +91,7 @@ def _normalize_worker_response(plan, payload, elapsed_ms):
     if not isinstance(payload, dict):
         raise RuntimeError("Tenki Steward response must be a JSON object")
 
-    authority_fields = ("authority", "permit", "capability", "gatekeeper_verdict")
-    if any(payload.get(field) not in (None, False) for field in authority_fields):
-        raise RuntimeError("Tenki/Steward response attempted to assert authority")
+    _assert_non_authoritative(payload)
 
     return {
         "status": "LIVE",
