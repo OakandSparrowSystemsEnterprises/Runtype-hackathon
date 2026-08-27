@@ -4,6 +4,7 @@ import time
 from arena import run_arena
 from deterministic_steward import run_deterministic_steward
 from aisa_mitosis import run_aisa_mitosis
+from security_probes import run_chain_verification_probe, run_idempotency_probe
 
 
 def _failed_plane(name, exc):
@@ -75,6 +76,19 @@ def run_progressive_evidence(base_demo):
                 "live": False,
             })
 
+    # Security verification belongs to the slower evidence phase. It executes
+    # only after the base Gatekeeper verdict is already cached and sealed, so
+    # these checks can never delay or alter the authority decision shown first.
+    try:
+        chain_verification = run_chain_verification_probe()
+    except Exception as exc:
+        chain_verification = _failed_plane("chain_verification", exc)
+
+    try:
+        idempotency = run_idempotency_probe()
+    except Exception as exc:
+        idempotency = _failed_plane("idempotency", exc)
+
     elapsed_ms = (time.perf_counter() - started) * 1000
     cotal = existing.get("cotal") or {"ok": False, "status": "UNAVAILABLE"}
     estate = existing.get("estate") or {"ok": False, "status": "UNAVAILABLE"}
@@ -97,11 +111,13 @@ def run_progressive_evidence(base_demo):
         and tenki.get("status") == "LIVE"
         and tenki.get("authority") is False
     )
+    security_ok = bool(chain_verification.get("ok")) and bool(idempotency.get("ok"))
     evidence_complete = (
         bool(cotal.get("ok"))
         and bool(estate.get("ok"))
         and steward_live
         and tenki_live
+        and security_ok
     )
 
     return {
@@ -114,6 +130,10 @@ def run_progressive_evidence(base_demo):
         "base_demo": base_demo,
         "cotal": cotal,
         "estate": estate,
+        "security": {
+            "chain_verification": chain_verification,
+            "idempotency": idempotency,
+        },
         "tenki": tenki,
         "deterministic_steward": steward,
         "sponsor": {"aisa_mitosis": aisa_mitosis},
