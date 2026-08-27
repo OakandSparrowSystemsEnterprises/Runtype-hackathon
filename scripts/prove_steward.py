@@ -41,6 +41,15 @@ def require(condition, stage, reason, **detail):
     raise RuntimeError(f"{stage}: {reason}")
 
 
+def configured_tenki_endpoints():
+    raw_many = os.environ.get("TENKI_DERIVE_URLS", "")
+    endpoints = [item.strip() for item in raw_many.split(",") if item.strip()]
+    if endpoints:
+        return endpoints
+    single = os.environ.get("TENKI_DERIVE_URL", "").strip()
+    return [single] if single else []
+
+
 def main():
     verdict_status, verdict = post(
         "/api/demo/run",
@@ -67,6 +76,9 @@ def main():
 
     steward = evidence.get("deterministic_steward") or {}
     workers = steward.get("workers") or []
+    tenki_swarm = steward.get("tenki_swarm") or {}
+    tenki_aggregate = tenki_swarm.get("aggregate") or {}
+
     require(
         steward.get("implemented") is True
         and steward.get("swarm_native") is True
@@ -78,10 +90,11 @@ def main():
     require(
         bool(steward.get("plan", {}).get("plan_id"))
         and bool(steward.get("state_hash"))
-        and len(workers) >= 2,
+        and len(workers) >= 3,
         "deterministic_state",
         "Steward did not produce a deterministic multi-worker state",
         worker_count=len(workers),
+        planned_worker_count=steward.get("planned_worker_count"),
     )
     require(
         all(worker.get("authority") is False for worker in workers),
@@ -89,29 +102,47 @@ def main():
         "a Steward worker attempted to carry authority",
     )
 
-    planes = {worker.get("plane"): worker for worker in workers}
-    cotal = planes.get("cotal") or {}
-    tenki = planes.get("tenki") or {}
+    cotal_workers = [worker for worker in workers if worker.get("plane") == "cotal"]
+    tenki_workers = [worker for worker in workers if worker.get("plane") == "tenki"]
     require(
-        cotal.get("live") is True,
-        "cotal_swarm_worker",
+        len(cotal_workers) == 1 and cotal_workers[0].get("live") is True,
+        "cotal_coordination_worker",
         "Cotal coordination worker is not live",
-        worker_status=cotal.get("status"),
+        worker_status=cotal_workers[0].get("status") if cotal_workers else None,
+    )
+    require(
+        len(tenki_workers) >= 2,
+        "tenki_swarm_plan",
+        "Steward did not schedule a real multi-replica Tenki swarm",
+        tenki_worker_count=len(tenki_workers),
     )
 
-    tenki_required = bool(os.environ.get("TENKI_DERIVE_URL"))
-    if tenki_required:
+    endpoints = configured_tenki_endpoints()
+    required_width = int(tenki_swarm.get("plan", {}).get("replica_width") or len(tenki_workers))
+    if len(endpoints) >= required_width:
         require(
-            tenki.get("live") is True,
-            "tenki_swarm_worker",
-            "TENKI_DERIVE_URL is configured but the live Tenki worker did not complete",
-            worker_status=tenki.get("status"),
+            tenki_swarm.get("live") is True
+            and tenki_aggregate.get("consensus") is True
+            and tenki_aggregate.get("completed") == required_width,
+            "tenki_replica_consensus",
+            "configured Tenki replica swarm did not complete deterministic consensus",
+            configured_endpoints=len(endpoints),
+            replica_width=required_width,
+            completed=tenki_aggregate.get("completed"),
+            failed=tenki_aggregate.get("failed"),
+            pending=tenki_aggregate.get("pending"),
+            consensus=tenki_aggregate.get("consensus"),
         )
     else:
         emit(
-            "tenki_swarm_worker",
+            "tenki_replica_consensus",
             "PENDING",
-            reason="TENKI_DERIVE_URL is not configured in this runtime",
+            configured_endpoints=len(endpoints),
+            replica_width=required_width,
+            completed=tenki_aggregate.get("completed"),
+            failed=tenki_aggregate.get("failed"),
+            pending=tenki_aggregate.get("pending"),
+            reason="distinct live Tenki /derive endpoints are required for every replica",
             core_steward_implementation_blocking=False,
         )
 
@@ -128,9 +159,11 @@ def main():
         worker_count=steward.get("worker_count"),
         live_workers=steward.get("live_workers"),
         failed_workers=steward.get("failed_workers"),
-        tenki_required=tenki_required,
+        pending_workers=steward.get("pending_workers"),
+        tenki_replica_width=required_width,
+        tenki_consensus=steward.get("tenki_consensus"),
     )
-    return 0 if (final_live or not tenki_required) else 1
+    return 0 if (final_live or len(endpoints) < required_width) else 1
 
 
 if __name__ == "__main__":
