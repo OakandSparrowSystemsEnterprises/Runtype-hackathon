@@ -43,3 +43,9 @@ Third unit: add a Tenki/GOI evidence adapter contract with a fail-visible not-li
 Fourth unit: harden the signed public-edge failure path and improve failure isolation for optional sponsor planes.
 
 Every unit ends with repository-level verification before it is marked complete. Keep unfinished workstreams open until the final dependency is complete or genuinely blocked.
+
+## Overnight progress
+
+Turn 1 established this coordination checkpoint on branch `overnight-build-2026-08-26`. Commit `91ab02e337440b94ab45287337daba3881ccec18` added `src/demo-orchestrator/progressive_evidence.py`, a real supporting-evidence runner that accepts the ArtifactRef from the base authority proof and resolves Cotal, the five-domain governed estate, and the existing security bundle without giving the ArtifactRef any authority semantics. Cotal and estate execute in parallel with the security bundle; chain verification and idempotency retain their established internal order. The runner emits a measured `supporting_evidence_ms` scoped explicitly to `cotal_plus_estate_plus_security`.
+
+Verification for the new module: Python syntax compilation passed. Runtime sponsor verification is intentionally not claimed because the local Cotal/Tenki/Gatekeeper services are not reachable from this automation environment. The next dependency-safe unit is to expose this runner through a separate evidence endpoint while preserving `/api/demo/run` as the fast authority-transfer path, then switch the Arena UI to render the base result before requesting supporting evidence.
