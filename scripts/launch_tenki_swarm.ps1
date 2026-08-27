@@ -1,5 +1,5 @@
 param(
-    [int]$Width = 4,
+    [int]$Width = 8,
     [string]$SnapshotId = "07fd77b8-7caf-400e-8e8e-42eb16396098",
     [string]$WslDistribution = "Ubuntu-24.04",
     [string]$TenkiCli = "/home/ankou/.local/bin/tenki",
