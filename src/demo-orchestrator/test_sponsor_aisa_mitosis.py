@@ -67,5 +67,58 @@ class AIsaMitosisSponsorTests(unittest.TestCase):
         self.assertFalse(result["mitosis_live"])
 
 
+class MiOutputParsingTests(unittest.TestCase):
+    def test_json_stdout_is_parsed(self):
+        parsed = sponsor._parse_mi_output(
+            '{"status":"ok","embedded":true,"universal_id":"agent:memories:31c72bd7c48e54f597d136e3"}'
+        )
+        self.assertEqual(parsed["status"], "ok")
+        self.assertTrue(parsed["embedded"])
+        self.assertEqual(
+            parsed["universal_id"], "agent:memories:31c72bd7c48e54f597d136e3"
+        )
+
+    def test_key_value_stdout_is_parsed(self):
+        parsed = sponsor._parse_mi_output(
+            "status: ok\nembedded: true\nuniversal_id: agent:memories:31c72bd7c48e54f597d136e3\n"
+        )
+        self.assertEqual(parsed["status"], "ok")
+        self.assertIs(parsed["embedded"], True)
+        self.assertEqual(
+            parsed["universal_id"], "agent:memories:31c72bd7c48e54f597d136e3"
+        )
+
+    def test_empty_stdout_still_reports_ok(self):
+        self.assertEqual(sponsor._parse_mi_output(""), {"status": "ok"})
+
+    def test_mi_command_has_no_json_flag(self):
+        observed = {}
+
+        class FakeCompleted:
+            returncode = 0
+            stdout = "status: ok\nembedded: true\nuniversal_id: agent:memories:test\n"
+            stderr = ""
+
+        original_which = sponsor.shutil.which
+        original_run = sponsor.subprocess.run
+        sponsor.shutil.which = lambda name: "/usr/local/bin/mi" if name == "mi" else None
+
+        def fake_run(command, **kwargs):
+            observed["command"] = command
+            return FakeCompleted()
+
+        sponsor.subprocess.run = fake_run
+        try:
+            payload = sponsor._remember_with_mitosis("office-test", "evidence text")
+        finally:
+            sponsor.shutil.which = original_which
+            sponsor.subprocess.run = original_run
+
+        self.assertNotIn("--json", observed["command"])
+        self.assertIn("--office", observed["command"])
+        self.assertEqual(payload["universal_id"], "agent:memories:test")
+        self.assertIs(payload["embedded"], True)
+
+
 if __name__ == "__main__":
     unittest.main()
