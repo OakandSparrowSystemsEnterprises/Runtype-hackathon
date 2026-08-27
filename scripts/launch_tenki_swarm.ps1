@@ -5,23 +5,16 @@ param(
     [string]$TenkiCli = "/home/ankou/.local/bin/tenki",
     [string]$WorkerCommand = "python3 /home/tenki/gatekeeper-tenki/worker.py",
     [string[]]$ExistingSessionIds = @(),
-    [int]$Retries = 5,
+    [int]$Retries = 3,
     [switch]$Sticky,
     [switch]$NoAutoDiscover
 )
 
 $ErrorActionPreference = "Stop"
-if ($Width -lt 2 -or $Width -gt 16) {
-    throw "Width must be between 2 and 16"
-}
-if ($ExistingSessionIds.Count -gt $Width) {
-    throw "ExistingSessionIds cannot exceed requested Width"
-}
-if ($Retries -lt 1 -or $Retries -gt 8) {
-    throw "Retries must be between 1 and 8"
-}
+if ($Width -lt 2 -or $Width -gt 16) { throw "Width must be between 2 and 16" }
+if ($ExistingSessionIds.Count -gt $Width) { throw "ExistingSessionIds cannot exceed requested Width" }
 
-function Invoke-Tenki([string[]]$Arguments) {
+function Invoke-Tenki([string[]]$Arguments, [switch]$FailForward) {
     $lastOutput = @()
     for ($attempt = 1; $attempt -le $Retries; $attempt++) {
         $previousPreference = $ErrorActionPreference
@@ -33,82 +26,53 @@ function Invoke-Tenki([string[]]$Arguments) {
             $ErrorActionPreference = $previousPreference
         }
         $lastOutput = @($output | ForEach-Object { "$_" })
-        if ($exitCode -eq 0) {
-            return $lastOutput
-        }
-
+        if ($exitCode -eq 0) { return $lastOutput }
         $joined = ($lastOutput -join "`n")
-        $transient = (
-            $joined -match 'write envelope: EOF' -or
-            $joined -match 'unexpected EOF' -or
-            $joined -match 'connection reset' -or
-            $joined -match 'temporarily unavailable'
-        )
+        $transient = $joined -match 'write envelope: EOF|unexpected EOF|connection reset|temporarily unavailable'
         if (-not $transient -or $attempt -eq $Retries) {
+            if ($FailForward) { return @($lastOutput) }
             throw "Tenki command failed after $attempt attempt(s): $($Arguments -join ' ')`n$joined"
         }
-
-        $delayMs = 500 * $attempt
-        Write-Host "Tenki transport retry $attempt/$Retries after transient failure..."
-        Start-Sleep -Milliseconds $delayMs
+        Start-Sleep -Milliseconds (350 * $attempt)
     }
-    throw "Tenki command failed: $($Arguments -join ' ')`n$($lastOutput -join "`n")"
+    if ($FailForward) { return @($lastOutput) }
+    throw "Tenki command failed: $($Arguments -join ' ')"
 }
 
 function Extract-SessionId([string[]]$Lines) {
-    $joined = ($Lines -join "`n")
-    $match = [regex]::Match($joined, '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
-    if (-not $match.Success) {
-        throw "Could not parse Tenki session id from create output"
-    }
+    $match = [regex]::Match(($Lines -join "`n"), '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+    if (-not $match.Success) { throw "Could not parse Tenki session id from create output" }
     return $match.Value
 }
 
 function Extract-PreviewUrl([string[]]$Lines) {
-    $joined = ($Lines -join "`n")
-    $match = [regex]::Match($joined, 'https://[^\s"''<>]+')
-    if (-not $match.Success) {
-        throw "Could not parse Tenki preview URL from expose output"
-    }
+    $match = [regex]::Match(($Lines -join "`n"), 'https://[^\s"''<>]+')
+    if (-not $match.Success) { return $null }
     return $match.Value.TrimEnd('/')
 }
 
 function Get-PropertyValue($Object, [string[]]$Names) {
     foreach ($name in $Names) {
         $property = $Object.PSObject.Properties[$name]
-        if ($property -and $null -ne $property.Value -and "$($property.Value)" -ne "") {
-            return $property.Value
-        }
+        if ($property -and $null -ne $property.Value -and "$($property.Value)" -ne "") { return $property.Value }
     }
     return $null
 }
 
 function Discover-TenkiSessions {
-    $lines = Invoke-Tenki @("sandbox", "list", "--json")
-    $raw = ($lines -join "`n").Trim()
+    $raw = ((Invoke-Tenki @("sandbox", "list", "--json")) -join "`n").Trim()
     if (-not $raw) { return @() }
-    try {
-        $parsed = $raw | ConvertFrom-Json
-    } catch {
-        Write-Host "Tenki session auto-discovery could not parse list JSON; continuing without discovery."
-        return @()
-    }
-
+    try { $parsed = $raw | ConvertFrom-Json } catch { return @() }
     $items = @()
-    if ($parsed -is [System.Array]) {
-        $items = @($parsed)
-    } else {
+    if ($parsed -is [System.Array]) { $items = @($parsed) }
+    else {
         foreach ($containerName in @("sessions", "items", "data")) {
             $candidate = $parsed.PSObject.Properties[$containerName]
-            if ($candidate -and $candidate.Value) {
-                $items = @($candidate.Value)
-                break
-            }
+            if ($candidate -and $candidate.Value) { $items = @($candidate.Value); break }
         }
         if ($items.Count -eq 0) { $items = @($parsed) }
     }
-
-    $sessionMatches = New-Object System.Collections.ArrayList
+    $found = New-Object System.Collections.ArrayList
     foreach ($item in $items) {
         $id = Get-PropertyValue $item @("session_id", "sessionId", "id")
         $name = Get-PropertyValue $item @("name", "session_name", "sessionName")
@@ -117,17 +81,14 @@ function Discover-TenkiSessions {
         $statusText = if ($status) { "$status".ToUpperInvariant() } else { "" }
         $active = (-not $statusText) -or $statusText -in @("RUNNING", "ACTIVE", "READY")
         if ($id -and $active -and $nameText -match '^gatekeeper-goi') {
-            [void]$sessionMatches.Add([pscustomobject]@{
-                id = "$id"
-                name = $nameText
-                status = $statusText
-            })
+            [void]$found.Add([pscustomobject]@{ id = "$id"; name = $nameText })
         }
     }
-    return @($sessionMatches | Sort-Object name, id)
+    return @($found | Sort-Object name, id)
 }
 
 function Test-DeriveEndpoint([string]$DeriveUrl) {
+    if (-not $DeriveUrl) { return $false }
     $probe = @{
         artifact_ref = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         artifact_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
@@ -135,105 +96,103 @@ function Test-DeriveEndpoint([string]$DeriveUrl) {
         principal = "agent-b"
     } | ConvertTo-Json -Compress
     try {
-        $response = Invoke-RestMethod -Uri $DeriveUrl -Method Post -ContentType "application/json" -Body $probe -TimeoutSec 4
+        $response = Invoke-RestMethod -Uri $DeriveUrl -Method Post -ContentType "application/json" -Body $probe -TimeoutSec 3
         return ($response.ok -eq $true -and $response.claim.authority -eq $false)
-    } catch {
-        return $false
-    }
-}
-
-function Get-DeriveUrl([string]$SessionId) {
-    $preview = Extract-PreviewUrl (
-        Invoke-Tenki @("sandbox", "expose", "--session", $SessionId, "--port", "8080")
-    )
-    return "$preview/derive"
+    } catch { return $false }
 }
 
 if (-not $NoAutoDiscover -and $ExistingSessionIds.Count -lt $Width) {
-    $discovered = @(Discover-TenkiSessions)
     $known = New-Object 'System.Collections.Generic.HashSet[string]'
     foreach ($id in $ExistingSessionIds) { [void]$known.Add($id) }
-    foreach ($session in $discovered) {
+    foreach ($session in @(Discover-TenkiSessions)) {
         if ($ExistingSessionIds.Count -ge $Width) { break }
         if ($known.Add($session.id)) {
-            Write-Host "Auto-discovered active Tenki worker: $($session.name) [$($session.id)]"
+            Write-Host "Auto-discovered Tenki worker: $($session.name) [$($session.id)]"
             $ExistingSessionIds += $session.id
         }
     }
-    Write-Host "Tenki auto-discovery adopted $($ExistingSessionIds.Count) active worker(s)."
 }
 
-$workers = @()
+# Phase 1: build the entire session pool before any fragile exec calls.
+$sessionPool = New-Object System.Collections.ArrayList
 for ($index = 0; $index -lt $Width; $index++) {
-    $adopted = $index -lt $ExistingSessionIds.Count
-    if ($adopted) {
-        $sessionId = $ExistingSessionIds[$index]
-        Write-Host "Adopting existing Tenki replica $index/$($Width - 1): $sessionId"
-    } else {
-        $name = "gatekeeper-goi-swarm-$('{0:d2}' -f $index)"
-        Write-Host "Launching Tenki replica $index/$($Width - 1)..."
-        $createArgs = @(
-            "sandbox", "create",
-            "--snapshot", $SnapshotId,
-            "--name", $name,
-            "--metadata", "oasse_role=goi-replica",
-            "--metadata", "oasse_replica=$index"
-        )
-        if ($Sticky) { $createArgs += "--sticky" }
-        $sessionId = Extract-SessionId (Invoke-Tenki $createArgs)
+    if ($index -lt $ExistingSessionIds.Count) {
+        [void]$sessionPool.Add([pscustomobject]@{ index = $index; session_id = $ExistingSessionIds[$index]; adopted = $true })
+        continue
     }
+    $name = "gatekeeper-goi-swarm-$('{0:d2}' -f $index)"
+    Write-Host "Creating Tenki replica $index/$($Width - 1)..."
+    $args = @("sandbox", "create", "--snapshot", $SnapshotId, "--name", $name, "--metadata", "oasse_role=goi-replica", "--metadata", "oasse_replica=$index")
+    if ($Sticky) { $args += "--sticky" }
+    $sessionId = Extract-SessionId (Invoke-Tenki $args)
+    [void]$sessionPool.Add([pscustomobject]@{ index = $index; session_id = $sessionId; adopted = $false })
+}
+Write-Host "Tenki session pool ready: $($sessionPool.Count)/$Width sessions."
 
-    $deriveUrl = Get-DeriveUrl $sessionId
-    $workerReady = Test-DeriveEndpoint $deriveUrl
+# Phase 2: expose/probe/start every worker independently. No single worker can abort the pool.
+$workers = New-Object System.Collections.ArrayList
+foreach ($session in $sessionPool) {
+    $index = [int]$session.index
+    $sessionId = "$($session.session_id)"
+    Write-Host "Preparing Tenki replica $index/$($Width - 1): $sessionId"
 
-    if (-not $workerReady) {
-        Write-Host "Replica $index is not serving /derive yet; starting worker..."
+    $preview = Extract-PreviewUrl (Invoke-Tenki @("sandbox", "expose", "--session", $sessionId, "--port", "8080") -FailForward)
+    $deriveUrl = if ($preview) { "$preview/derive" } else { $null }
+    $live = Test-DeriveEndpoint $deriveUrl
+    $startAttempted = $false
+
+    if (-not $live) {
+        $startAttempted = $true
         $shell = "nohup $WorkerCommand >/home/tenki/gatekeeper-tenki/worker-$index.log 2>&1 </dev/null &"
-        try {
-            Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) | Out-Null
-        } catch {
-            Write-Host "Tenki exec failed for replica $index; re-probing exposed worker before giving up."
+        Invoke-Tenki @("sandbox", "exec", "--session", $sessionId, "-c", $shell) -FailForward | Out-Null
+        Start-Sleep -Milliseconds 600
+        if (-not $deriveUrl) {
+            $preview = Extract-PreviewUrl (Invoke-Tenki @("sandbox", "expose", "--session", $sessionId, "--port", "8080") -FailForward)
+            if ($preview) { $deriveUrl = "$preview/derive" }
         }
-        Start-Sleep -Seconds 1
-        $workerReady = Test-DeriveEndpoint $deriveUrl
+        $live = Test-DeriveEndpoint $deriveUrl
     }
 
-    if (-not $workerReady) {
-        throw "Tenki replica $index [$sessionId] exists but /derive is not reachable after restore/start attempts"
-    }
-
-    Write-Host "Tenki replica $index LIVE: $sessionId"
-    $workers += [ordered]@{
+    [void]$workers.Add([ordered]@{
         replica_index = $index
         session_id = $sessionId
-        adopted_existing = $adopted
+        adopted_existing = [bool]$session.adopted
         derive_url = $deriveUrl
         snapshot_id = $SnapshotId
         authority = $false
-        live = $true
-    }
+        live = [bool]$live
+        start_attempted = $startAttempted
+    })
+    Write-Host "Replica $index status: $(if ($live) { 'LIVE' } else { 'PENDING' })"
 }
 
-$env:TENKI_DERIVE_URLS = (($workers | ForEach-Object { $_.derive_url }) -join ',')
-$env:TENKI_DERIVE_URL = $workers[0].derive_url
+$liveWorkers = @($workers | Where-Object { $_.live -eq $true -and $_.derive_url })
 $env:TENKI_SWARM_WIDTH = [string]$Width
+if ($liveWorkers.Count -gt 0) {
+    $env:TENKI_DERIVE_URLS = (($liveWorkers | ForEach-Object { $_.derive_url }) -join ',')
+    $env:TENKI_DERIVE_URL = $liveWorkers[0].derive_url
+} else {
+    Remove-Item Env:TENKI_DERIVE_URLS -ErrorAction SilentlyContinue
+    Remove-Item Env:TENKI_DERIVE_URL -ErrorAction SilentlyContinue
+}
 
 $result = [ordered]@{
-    status = "READY_FOR_LIVE_PROOF"
+    status = $(if ($liveWorkers.Count -eq $Width) { "READY_FOR_LIVE_PROOF" } else { "PARTIAL" })
     platform = "Tenki"
     snapshot_id = $SnapshotId
     replica_width = $Width
-    adopted_existing = $ExistingSessionIds.Count
-    created_new = $Width - $ExistingSessionIds.Count
+    session_pool = $sessionPool.Count
+    live_replicas = $liveWorkers.Count
     authority = $false
     sessions = $workers
     env = [ordered]@{
         TENKI_SWARM_WIDTH = $env:TENKI_SWARM_WIDTH
-        TENKI_DERIVE_URLS_configured = $true
-        TENKI_DERIVE_URL_compatibility_pointer = $true
+        TENKI_DERIVE_URLS_configured = ($liveWorkers.Count -gt 0)
     }
 }
 $result | ConvertTo-Json -Depth 6
 
-Write-Host "Tenki swarm environment is configured in this PowerShell session."
-Write-Host "Next: .\scripts\start_day2.ps1 -Restart -GenerateDemoKeys -RunSteward"
+Write-Host "Tenki pool complete: $($liveWorkers.Count)/$Width live replicas."
+if ($liveWorkers.Count -gt 0) {
+    Write-Host "Live endpoints exported in this PowerShell session."
+}
