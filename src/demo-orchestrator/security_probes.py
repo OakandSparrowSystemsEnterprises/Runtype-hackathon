@@ -72,3 +72,62 @@ def run_chain_verification_probe():
             "artifact_hash": artifact.get("artifact_hash"),
         },
     }
+
+
+def run_idempotency_probe():
+    key = f"arena-idempotency-{uuid.uuid4().hex}"
+    headers = {
+        "X-Idempotency-Key": key,
+        "X-Case-Id": "hackathon-v2-idempotency",
+    }
+
+    first_status, first_payload = _request_json(
+        "GET",
+        "/api/domains/parent-shield/chain/verify",
+        headers=headers,
+    )
+    replay_status, replay_payload = _request_json(
+        "GET",
+        "/api/domains/parent-shield/chain/verify",
+        headers=headers,
+    )
+
+    first_artifact = first_payload.get("artifact") if isinstance(first_payload, dict) else None
+    if not isinstance(first_artifact, dict):
+        first_artifact = {}
+
+    detail = replay_payload.get("detail") if isinstance(replay_payload, dict) else None
+    if not isinstance(detail, dict):
+        detail = {}
+    replay_artifact = detail.get("artifact")
+    if not isinstance(replay_artifact, dict):
+        replay_artifact = {}
+
+    same_artifact = bool(
+        first_artifact.get("id")
+        and first_artifact.get("id") == replay_artifact.get("id")
+        and first_artifact.get("artifact_hash") == replay_artifact.get("artifact_hash")
+    )
+    replay_outcome = detail.get("outcome")
+
+    return {
+        "ok": (
+            first_status == 200
+            and replay_status == 409
+            and replay_outcome == "idempotent-ledger-read-already-resolved"
+            and same_artifact
+        ),
+        "key": key,
+        "first_status": first_status,
+        "replay_status": replay_status,
+        "replay_outcome": replay_outcome,
+        "same_artifact": same_artifact,
+        "first_artifact": {
+            "id": first_artifact.get("id"),
+            "artifact_hash": first_artifact.get("artifact_hash"),
+        },
+        "replay_artifact": {
+            "id": replay_artifact.get("id"),
+            "artifact_hash": replay_artifact.get("artifact_hash"),
+        },
+    }
