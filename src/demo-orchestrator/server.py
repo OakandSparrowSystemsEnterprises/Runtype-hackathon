@@ -107,6 +107,7 @@ def request_json(url, raw_body, headers):
 
 
 def run_demo(target_url, intent):
+    proof_started = time.perf_counter()
     run_id = uuid.uuid4().hex
 
     timeline = []
@@ -205,6 +206,8 @@ def run_demo(target_url, intent):
     })
 
     gatekeeper = agent_b_result.get("gatekeeper", {})
+    gatekeeper_latency_ms = agent_b_result.get("gatekeeper_upstream_latency_ms")
+    proof_latency_ms = round((time.perf_counter() - proof_started) * 1000, 2)
 
     return {
         "ok": (
@@ -226,6 +229,12 @@ def run_demo(target_url, intent):
             "status": agent_b_status
         },
         "authority_transfer_from_artifact": False,
+        "latency": {
+            "gatekeeper_v2_hop_ms": gatekeeper_latency_ms,
+            "authority_transfer_proof_ms": proof_latency_ms,
+            "gatekeeper_latency_source": "action-edge measured V2 evaluate hop",
+            "proof_latency_source": "artifact ingress + A deny + handoff + B governed action"
+        },
         "gatekeeper": {
             "formal": gatekeeper.get("formal"),
             "product": gatekeeper.get("product"),
