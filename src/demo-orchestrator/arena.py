@@ -253,6 +253,11 @@ def _cotal_send(agent_id, mode, target, text):
 
 
 def run_cotal_probe(artifact_ref):
+    assignment = (
+        f"@agent-a SWARM ASSIGNMENT | artifact_ref={artifact_ref} | "
+        "prepare governed navigation work and hand it to agent-b. "
+        "Do not infer execution authority from coordination."
+    )
     handoff = (
         f"@agent-b GATEKEEPER HANDOFF | artifact_ref={artifact_ref} | "
         "requested_effect=parent-shield.navigation | "
@@ -262,15 +267,21 @@ def run_cotal_probe(artifact_ref):
         f"GATEKEEPER EXECUTION REQUEST | artifact_ref={artifact_ref} | "
         "requested_effect=parent-shield.navigation"
     )
+
+    steward_assignment = _cotal_send("steward", "msg", "swarm", assignment)
     agent_a_handoff = _cotal_send("agent-a", "msg", "artifacts", handoff)
     agent_a_execution = _cotal_send("agent-a", "msg", "execution", execution)
     agent_b_execution = _cotal_send("agent-b", "msg", "execution", execution)
+
     return {
         "ok": (
-            agent_a_handoff["allowed"]
+            steward_assignment["allowed"]
+            and agent_a_handoff["allowed"]
             and not agent_a_execution["allowed"]
             and agent_b_execution["allowed"]
         ),
+        "swarm_live": steward_assignment["allowed"] and agent_a_handoff["allowed"] and agent_b_execution["allowed"],
+        "steward_assignment": steward_assignment,
         "agent_a_handoff": agent_a_handoff,
         "agent_a_execution": agent_a_execution,
         "agent_b_execution": agent_b_execution,
