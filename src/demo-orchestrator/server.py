@@ -8,6 +8,8 @@ import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from arena import run_arena
+
 PORT = int(os.environ.get("DEMO_ORCHESTRATOR_PORT", "8083"))
 
 ARTIFACT_URL = os.environ.get(
@@ -86,7 +88,6 @@ def run_demo(target_url, intent):
 
     timeline = []
 
-    # 1. Agent A introduces a new immutable artifact.
     artifact_bytes = f"gatekeeper-agent-demo:{run_id}".encode("utf-8")
     artifact_digest = hashlib.sha256(artifact_bytes).hexdigest()
 
@@ -123,7 +124,6 @@ def run_demo(target_url, intent):
         "status": artifact_status
     })
 
-    # Same exact proposed effect for both agents.
     action_payload = {
         "artifact_ref": artifact_ref,
         "url": target_url,
@@ -135,7 +135,6 @@ def run_demo(target_url, intent):
         separators=(",", ":")
     ).encode("utf-8")
 
-    # 2. Agent A owns the artifact but does NOT have navigation authority.
     agent_a_headers = {
         "Content-Type": "application/json",
         **signature_headers("agent-a", action_raw)
@@ -155,7 +154,6 @@ def run_demo(target_url, intent):
         "result": agent_a_result
     })
 
-    # 3. Artifact is handed to Agent B.
     timeline.append({
         "stage": "artifact_handoff",
         "from": "agent-a",
@@ -164,7 +162,6 @@ def run_demo(target_url, intent):
         "authority_transferred": False
     })
 
-    # 4. Agent B independently authenticates and has the capability.
     agent_b_headers = {
         "Content-Type": "application/json",
         **signature_headers("agent-b", action_raw)
@@ -218,7 +215,7 @@ def run_demo(target_url, intent):
 
 
 class DemoHandler(BaseHTTPRequestHandler):
-    server_version = "GatekeeperDemoOrchestrator/0.1"
+    server_version = "GatekeeperDemoOrchestrator/0.2"
 
     def send_json(self, status, payload):
         raw = json.dumps(
@@ -236,13 +233,14 @@ class DemoHandler(BaseHTTPRequestHandler):
         if self.path == "/health":
             return self.send_json(200, {
                 "status": "ok",
-                "service": "gatekeeper-demo-orchestrator"
+                "service": "gatekeeper-demo-orchestrator",
+                "arena": True
             })
 
         return self.send_json(404, {"error": "not_found"})
 
     def do_POST(self):
-        if self.path != "/api/demo/run":
+        if self.path not in ("/api/demo/run", "/api/demo/arena"):
             return self.send_json(404, {"error": "not_found"})
 
         try:
@@ -271,7 +269,12 @@ class DemoHandler(BaseHTTPRequestHandler):
         )
 
         try:
-            result = run_demo(target_url, intent)
+            base_result = run_demo(target_url, intent)
+            result = (
+                run_arena(base_result)
+                if self.path == "/api/demo/arena"
+                else base_result
+            )
         except Exception as exc:
             return self.send_json(500, {
                 "error": "demo_orchestrator_failure",
