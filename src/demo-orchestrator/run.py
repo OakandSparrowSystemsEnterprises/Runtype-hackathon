@@ -5,6 +5,7 @@ import subprocess
 import arena
 import server
 from security_probes import run_chain_verification_probe, run_idempotency_probe
+from tenki_swarm import run_tenki_swarm
 
 PORT = server.PORT
 DemoHandler = server.DemoHandler
@@ -65,9 +66,34 @@ def _run_arena_with_security(base_demo):
     result = _base_run_arena(base_demo)
     chain_verification = run_chain_verification_probe()
     idempotency = run_idempotency_probe()
+
+    # Tenki is supporting compute/evidence only. A Tenki failure or missing
+    # endpoint must never erase a Gatekeeper authority result or make Tenki an
+    # authority source.
+    try:
+        tenki = run_tenki_swarm(
+            base_demo.get("artifact_ref"),
+            base_demo.get("requested_effect") or "parent-shield.navigation",
+            base_demo.get("effect_principal") or "agent-b",
+        )
+    except Exception as exc:
+        tenki = {
+            "status": "PENDING",
+            "live": False,
+            "platform": "Tenki",
+            "authority": False,
+            "reason": str(exc),
+        }
+
     result["security"] = {
         "chain_verification": chain_verification,
         "idempotency": idempotency,
+    }
+    result["tenki"] = tenki
+    result["deterministic_steward"] = {
+        "status": "IMPLEMENTATION_PENDING",
+        "live": False,
+        "authority": False,
     }
     result["ok"] = (
         bool(result.get("ok"))
@@ -78,7 +104,7 @@ def _run_arena_with_security(base_demo):
 
 
 # server imported run_arena by value, so patch both references used by the
-# runtime after adding the live security probes.
+# runtime after adding the live security and supporting-evidence probes.
 arena.run_arena = _run_arena_with_security
 server.run_arena = _run_arena_with_security
 
