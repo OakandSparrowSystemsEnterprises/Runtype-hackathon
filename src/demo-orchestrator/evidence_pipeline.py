@@ -1,9 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 import time
 
-from aisa_mitosis import run_aisa_mitosis
 from arena import run_arena
-from tenki_swarm import run_tenki_swarm
+from deterministic_steward import run_deterministic_steward
+from aisa_mitosis import run_aisa_mitosis
 
 
 def _failed_plane(name, exc):
@@ -15,23 +15,8 @@ def _failed_plane(name, exc):
     }
 
 
-def _steward_pending():
-    return {
-        "ok": True,
-        "status": "IMPLEMENTATION_PENDING",
-        "implemented": False,
-        "authority": False,
-        "role": "settled_design_only",
-    }
-
-
 def run_progressive_evidence(base_demo):
-    """Resolve slower evidence planes after the Gatekeeper verdict is already known.
-
-    The current run identity is bound directly into Tenki. Tenki remains derived,
-    non-authoritative evidence. The Deterministic Steward is deliberately not a
-    runtime dependency and remains implementation-pending.
-    """
+    """Resolve slower evidence planes after the Gatekeeper verdict is already known."""
     artifact_ref = base_demo.get("artifact_ref")
     requested_effect = base_demo.get("requested_effect")
     principal = base_demo.get("effect_principal")
@@ -46,8 +31,8 @@ def run_progressive_evidence(base_demo):
     started = time.perf_counter()
     with ThreadPoolExecutor(max_workers=3) as pool:
         existing_future = pool.submit(run_arena, base_demo)
-        tenki_future = pool.submit(
-            run_tenki_swarm,
+        steward_future = pool.submit(
+            run_deterministic_steward,
             artifact_ref,
             requested_effect,
             principal,
@@ -70,10 +55,15 @@ def run_progressive_evidence(base_demo):
             }
 
         try:
-            tenki = tenki_future.result()
+            steward = steward_future.result()
         except Exception as exc:
-            tenki = _failed_plane("tenki", exc)
-            tenki.update({"live": False, "authority": False})
+            steward = _failed_plane("deterministic_steward", exc)
+            steward.update({
+                "implemented": True,
+                "swarm_native": True,
+                "authority": False,
+                "workers": [],
+            })
 
         try:
             aisa_mitosis = sponsor_future.result()
@@ -88,8 +78,20 @@ def run_progressive_evidence(base_demo):
     elapsed_ms = (time.perf_counter() - started) * 1000
     cotal = existing.get("cotal") or {"ok": False, "status": "UNAVAILABLE"}
     estate = existing.get("estate") or {"ok": False, "status": "UNAVAILABLE"}
-    steward = _steward_pending()
 
+    tenki = {"status": "PENDING", "live": False, "authority": False}
+    for worker in steward.get("workers") or []:
+        if worker.get("plane") == "tenki":
+            candidate = worker.get("output")
+            if isinstance(candidate, dict):
+                tenki = candidate
+            break
+
+    steward_live = (
+        steward.get("status") == "LIVE"
+        and steward.get("implemented") is True
+        and steward.get("authority") is False
+    )
     tenki_live = (
         bool(tenki.get("live"))
         and tenki.get("status") == "LIVE"
@@ -98,6 +100,7 @@ def run_progressive_evidence(base_demo):
     evidence_complete = (
         bool(cotal.get("ok"))
         and bool(estate.get("ok"))
+        and steward_live
         and tenki_live
     )
 
