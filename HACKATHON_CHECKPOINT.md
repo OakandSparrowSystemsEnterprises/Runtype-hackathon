@@ -14,9 +14,11 @@ Current proof gate: **GATE 0 CORE FIRST — PENDING LIVE FRESH PROOF**.
 
 Sponsor eligibility: **NONE until Gate 0 PASS**. AIsa.ONE x Mitosis is Gate 1 and may begin only after a full Gate 0 PASS. Cloudflare remains locked behind Gate 1 PASS. Nebius remains optional and locked behind Gate 2 PASS.
 
-Commit `57d5a1694d1b35690387cc64cb09957d2cb1f820` adds `scripts/prove_gate0.py`, a fail-closed end-to-end proof runner. It refuses PASS unless all of the following are simultaneously real and successful: the Gatekeeper-V2-NPU source checkout matches the pinned commit; a real signed action completes without reproducing the historical 502/504; a fresh `/api/demo/run` returns a valid fresh ArtifactRef; Agent A is denied with 403; Agent B succeeds with 200; artifact possession does not transfer authority; V2 returns allowed/permit plus a sealed artifact hash; `/api/demo/evidence` preserves the verdict; Tenki resolves LIVE and non-authoritative for the exact same fresh ArtifactRef/digest/effect/principal; and the Deterministic Steward resolves LIVE with `authority=false`. Only then does the script emit `GATE_0: PASS` and mark `AISA.ONE x MITOSIS` eligible.
+Commit `57d5a1694d1b35690387cc64cb09957d2cb1f820` added `scripts/prove_gate0.py`, the fail-closed end-to-end proof runner. Commit `9ef8facf7e1875b9e04db1df09165efa8778fa33` fixes its bootstrap ordering: Gate 0 now creates a fresh ArtifactRef first and binds the signed-action diagnostic to that exact artifact. A historical `DIAGNOSTIC_ARTIFACT_REF` is no longer a precondition and cannot accidentally satisfy freshness. The runner also accepts the matching agent key from `GATEKEEPER_AGENT_KEYS_JSON` when `DIAGNOSTIC_AGENT_SECRET` is not separately duplicated into the shell.
 
-No sponsor integration was started in this run because Gate 0 has not yet produced this fresh serial PASS.
+The runner still refuses PASS unless the Gatekeeper-V2-NPU source checkout matches the pinned commit; a real signed action completes without reproducing the historical 502/504; the fresh `/api/demo/run` returns a valid fresh ArtifactRef; Agent A is denied with 403; Agent B succeeds with 200; artifact possession does not transfer authority; V2 returns allowed/permit plus a sealed artifact hash; `/api/demo/evidence` preserves the verdict; Tenki resolves LIVE and non-authoritative for the exact same fresh ArtifactRef/digest/effect/principal; and the Deterministic Steward resolves LIVE with `authority=false`. Only then may it emit `GATE_0: PASS` and mark `AISA.ONE x MITOSIS` eligible.
+
+No sponsor integration has been started because Gate 0 has not yet produced the required serial PASS.
 
 ## Tenki
 
@@ -32,7 +34,7 @@ The judge flow is verdict-first. `/api/demo/run` renders Gatekeeper before `/api
 
 ## Signed-action 502
 
-Status: **PENDING LIVE CLOSURE**. Missing auth is correctly `401 missing_agent_auth`. The action edge retains HMAC verification, capability gating, immutable ArtifactRef validation, and the real `action-edge -> GATEKEEPER_BASE_URL -> /api/domains/parent-shield/navigation/evaluate` boundary. Runtime diagnostics distinguish action-edge process failure, public-edge routing, action-edge namespace V2 reachability, V2 unreachable, invalid response, timeout, and successful signed completion. `scripts/prove_gate0.py` now makes clean signed completion a mandatory Gate 0 condition rather than allowing sponsor work to proceed around it.
+Status: **PENDING LIVE CLOSURE**. Missing auth is correctly `401 missing_agent_auth`. The action edge retains HMAC verification, capability gating, immutable ArtifactRef validation, and the real `action-edge -> GATEKEEPER_BASE_URL -> /api/domains/parent-shield/navigation/evaluate` boundary. Runtime diagnostics distinguish action-edge process failure, public-edge routing, action-edge namespace V2 reachability, V2 unreachable, invalid response, timeout, and successful signed completion. Gate 0 now runs that signed diagnostic against the exact fresh artifact created by the proof attempt instead of requiring a manually supplied prior ArtifactRef.
 
 ## V2 pin
 
@@ -40,10 +42,12 @@ Source pin remains Gatekeeper-V2-NPU commit `338a126521a8427fe5d1988d0a1381affe8
 
 ## Verification and CI
 
-Existing targeted suites remain the latest executable evidence: Tenki authority-boundary tests, progressive evidence isolation tests, and the nine-case signed-action diagnostic classifier suite. The new Gate 0 runner is repository-side integration work and has not been falsely reported as a live PASS from this connector environment because it cannot reach the user's localhost/Tenki/V2 processes.
+The committed `scripts/prove_gate0.py` at blob `25240ee31b86057b9273925125e10e2cde043d27` was fetched back from the branch after the update and inspected for the fresh-artifact-first ordering, exact ArtifactRef injection into `diagnose_action_edge.py`, and secret fallback behavior. Live end-to-end execution is intentionally not claimed from the connector environment because it cannot reach the user's localhost/Tenki/V2 processes.
+
+Existing targeted suites remain the latest executable evidence: Tenki authority-boundary tests, progressive evidence isolation tests, and the nine-case signed-action diagnostic classifier suite.
 
 **CI INTENTIONALLY SKIPPED TO CONSERVE GITHUB ACTIONS USAGE.** No no-op commit was made and Gatekeeper-V2-NPU was not modified.
 
 ## Next action
 
-Run `python3 scripts/prove_gate0.py` from the active Day 2 checkout with `GATEKEEPER_V2_SOURCE_ROOT`, `TENKI_DERIVE_URL`, and the existing signed diagnostic environment configured. Do not start AIsa.ONE x Mitosis unless that command emits `GATE_0` with `PASS`.
+Pull the branch head and run `python .\scripts\prove_gate0.py` from the active Day 2 shell with `GATEKEEPER_V2_SOURCE_ROOT`, `TENKI_DERIVE_URL`, and the same `GATEKEEPER_AGENT_KEYS_JSON` used by the running hackathon services. `DIAGNOSTIC_ARTIFACT_REF` is no longer required. Do not start AIsa.ONE x Mitosis unless that command emits `GATE_0` with `PASS`.
