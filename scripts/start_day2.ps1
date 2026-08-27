@@ -143,10 +143,16 @@ if (-not $SkipPublicEdge) {
         & docker rm -f gatekeeper-public-edge | Out-Null
     }
     $nginxPath = (Resolve-Path ".\nginx.conf").Path
-    $containerId = (& docker run -d --rm --name gatekeeper-public-edge -p 8080:8080 --mount "type=bind,source=$nginxPath,target=/etc/nginx/conf.d/default.conf,readonly" nginx:alpine).Trim()
+    $arenaPath = (Resolve-Path ".\web\day2-arena.html").Path
+    $manifestPath = (Resolve-Path ".\.well-known\ai-agent.json").Path
+    $containerId = (& docker run -d --rm --name gatekeeper-public-edge -p 8080:8080 `
+        --mount "type=bind,source=$nginxPath,target=/etc/nginx/conf.d/default.conf,readonly" `
+        --mount "type=bind,source=$arenaPath,target=/usr/share/nginx/html/day2-arena.html,readonly" `
+        --mount "type=bind,source=$manifestPath,target=/usr/share/nginx/html/.well-known/ai-agent.json,readonly" `
+        nginx:alpine).Trim()
     if (-not $containerId) { throw "failed to start gatekeeper-public-edge nginx container" }
     Wait-JsonHealth "http://127.0.0.1:8080/health" | Out-Null
-    Write-State "public_edge" "READY" @{ container = "gatekeeper-public-edge"; runtime_identity_proven = $false }
+    Write-State "public_edge" "READY" @{ container = "gatekeeper-public-edge"; arena = "http://127.0.0.1:8080/"; runtime_identity_proven = $false }
 }
 
 Write-State "DAY2_STACK" "READY" @{
@@ -155,6 +161,7 @@ Write-State "DAY2_STACK" "READY" @{
     action_edge = "http://127.0.0.1:8082"
     orchestrator = "http://127.0.0.1:8083"
     public_edge = $(if ($SkipPublicEdge) { "SKIPPED" } else { "http://127.0.0.1:8080" })
+    arena = $(if ($SkipPublicEdge) { "UNAVAILABLE" } else { "http://127.0.0.1:8080/" })
     diagnostic_secret_printed = $false
 }
 
