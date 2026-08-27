@@ -131,13 +131,29 @@ def classify_summary(
             "reason": "public edge, action edge, direct V2, and action-edge-to-V2 reachability are proven; signed credentials/artifact are required for the final reproduction",
         }
 
-    if signed_status == 502:
-        detail = signed_body.get("detail") if isinstance(signed_body, dict) else None
+    if signed_status in (502, 504):
+        error = signed_body.get("error") if isinstance(signed_body, dict) else None
+        stage = signed_body.get("upstream_stage") if isinstance(signed_body, dict) else None
+        error_class = signed_body.get("error_class") if isinstance(signed_body, dict) else None
+        latency_ms = signed_body.get("upstream_latency_ms") if isinstance(signed_body, dict) else None
+
+        reasons = {
+            "gatekeeper_unreachable": "the signed evaluation could not connect to Gatekeeper from the action-edge process namespace",
+            "gatekeeper_invalid_response": "Gatekeeper accepted the signed evaluation hop but returned a response the action edge could not decode as JSON",
+            "gatekeeper_timeout": "the signed Gatekeeper evaluation exceeded the action-edge timeout",
+        }
+
         return {
             "status": "REPRODUCED",
             "boundary": "action_edge_signed_gatekeeper_call",
-            "reason": "action-edge health proves its V2 health path is reachable, but the signed evaluation call still returned 502",
-            "detail": detail,
+            "reason": reasons.get(
+                error,
+                "action-edge health proves its V2 health path is reachable, but the signed evaluation call still failed at the Gatekeeper hop",
+            ),
+            "error": error,
+            "upstream_stage": stage,
+            "error_class": error_class,
+            "upstream_latency_ms": latency_ms,
         }
 
     if signed_status is None:
@@ -250,7 +266,7 @@ def main():
             signed_status = None
             signed_body = {"error": "unreachable", "detail": str(exc.reason)}
 
-        if signed_status == 502:
+        if signed_status in (502, 504):
             failures += 1
 
     print_result("public_edge_signed_action", signed_status, signed_body)
