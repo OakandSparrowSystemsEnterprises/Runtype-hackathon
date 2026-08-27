@@ -6,7 +6,8 @@ param(
     [string]$WorkerCommand = "python3 /home/tenki/gatekeeper-tenki/worker.py",
     [string[]]$ExistingSessionIds = @(),
     [int]$Retries = 5,
-    [switch]$Sticky
+    [switch]$Sticky,
+    [switch]$NoAutoDiscover
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,20 +24,15 @@ if ($Retries -lt 1 -or $Retries -gt 8) {
 function Invoke-Tenki([string[]]$Arguments) {
     $lastOutput = @()
     for ($attempt = 1; $attempt -le $Retries; $attempt++) {
-        # Windows PowerShell 5.1 can promote native stderr from wsl.exe into a
-        # terminating RemoteException when the script-level preference is Stop.
-        # Temporarily allow stderr to flow into 2>&1 so we can inspect the real
-        # Tenki exit code and retry transient transport failures deliberately.
-        $savedPreference = $ErrorActionPreference
+        $previousPreference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
         try {
             $output = & wsl.exe -d $WslDistribution -- $TenkiCli @Arguments 2>&1
             $exitCode = $LASTEXITCODE
         } finally {
-            $ErrorActionPreference = $savedPreference
+            $ErrorActionPreference = $previousPreference
         }
-
-        $lastOutput = @($output | ForEach-Object { $_.ToString() })
+        $lastOutput = @($output | ForEach-Object { "$_" })
         if ($exitCode -eq 0) {
             return $lastOutput
         }
@@ -52,7 +48,7 @@ function Invoke-Tenki([string[]]$Arguments) {
             throw "Tenki command failed after $attempt attempt(s): $($Arguments -join ' ')`n$joined"
         }
 
-        $delayMs = 750 * $attempt
+        $delayMs = 500 * $attempt
         Write-Host "Tenki transport retry $attempt/$Retries after transient failure..."
         Start-Sleep -Milliseconds $delayMs
     }
@@ -75,6 +71,70 @@ function Extract-PreviewUrl([string[]]$Lines) {
         throw "Could not parse Tenki preview URL from expose output"
     }
     return $match.Value.TrimEnd('/')
+}
+
+function Get-PropertyValue($Object, [string[]]$Names) {
+    foreach ($name in $Names) {
+        $property = $Object.PSObject.Properties[$name]
+        if ($property -and $null -ne $property.Value -and "$($property.Value)" -ne "") {
+            return $property.Value
+        }
+    }
+    return $null
+}
+
+function Discover-TenkiSessions {
+    $lines = Invoke-Tenki @("sandbox", "list", "--json")
+    $raw = ($lines -join "`n").Trim()
+    if (-not $raw) { return @() }
+    try {
+        $parsed = $raw | ConvertFrom-Json
+    } catch {
+        Write-Host "Tenki session auto-discovery could not parse list JSON; continuing without discovery."
+        return @()
+    }
+
+    $items = @()
+    if ($parsed -is [System.Array]) {
+        $items = @($parsed)
+    } else {
+        foreach ($containerName in @("sessions", "items", "data")) {
+            $candidate = $parsed.PSObject.Properties[$containerName]
+            if ($candidate -and $candidate.Value) {
+                $items = @($candidate.Value)
+                break
+            }
+        }
+        if ($items.Count -eq 0) { $items = @($parsed) }
+    }
+
+    $matches = @()
+    foreach ($item in $items) {
+        $id = Get-PropertyValue $item @("session_id", "sessionId", "id")
+        $name = Get-PropertyValue $item @("name", "session_name", "sessionName")
+        $status = Get-PropertyValue $item @("status", "state")
+        $nameText = if ($name) { "$name" } else { "" }
+        $statusText = if ($status) { "$status".ToUpperInvariant() } else { "" }
+        $active = (-not $statusText) -or $statusText -in @("RUNNING", "ACTIVE", "READY")
+        if ($id -and $active -and $nameText -match '^gatekeeper-goi') {
+            $matches += [pscustomobject]@{ id = "$id"; name = $nameText; status = $statusText }
+        }
+    }
+    return @($matches | Sort-Object name, id)
+}
+
+if (-not $NoAutoDiscover -and $ExistingSessionIds.Count -lt $Width) {
+    $discovered = @(Discover-TenkiSessions)
+    $known = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($id in $ExistingSessionIds) { [void]$known.Add($id) }
+    foreach ($session in $discovered) {
+        if ($ExistingSessionIds.Count -ge $Width) { break }
+        if ($known.Add($session.id)) {
+            Write-Host "Auto-discovered active Tenki worker: $($session.name) [$($session.id)]"
+            $ExistingSessionIds += $session.id
+        }
+    }
+    Write-Host "Tenki auto-discovery adopted $($ExistingSessionIds.Count) active worker(s)."
 }
 
 $workers = @()
