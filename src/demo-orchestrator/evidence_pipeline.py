@@ -3,7 +3,7 @@ import time
 
 from arena import run_arena
 from deterministic_steward import run_deterministic_steward
-from aisa_mitosis import run_aisa_mitosis
+from sponsor_aisa_mitosis import run_aisa_mitosis_evidence
 from security_probes import run_chain_verification_probe, run_idempotency_probe
 
 
@@ -14,6 +14,34 @@ def _failed_plane(name, exc):
         "authority": False,
         "error": f"{name}: {type(exc).__name__}: {exc}",
     }
+
+
+def run_aisa_mitosis(artifact_ref, requested_effect, principal, target_url=None):
+    """Run the proven AIsa Exa -> Mitosis Cortex evidence route for this demo run.
+
+    The sponsor plane remains non-authoritative. Gatekeeper has already sealed the
+    verdict before this function is called; this function only enriches and stores
+    supporting evidence.
+    """
+    target = target_url or "unspecified target"
+    query = (
+        "current public evidence relevant to pre-execution AI governance for "
+        f"target={target}; requested_effect={requested_effect}; principal={principal}"
+    )
+    result = run_aisa_mitosis_evidence(query=query)
+    if not isinstance(result, dict):
+        raise RuntimeError("AIsa x Mitosis sponsor adapter returned a non-object result")
+
+    # Bind the supporting evidence record to the current governed run using only
+    # locally supplied identifiers. Sponsor output still cannot grant authority.
+    result.setdefault("implemented", True)
+    result.setdefault("sponsor", "AIsa.ONE x Mitosis")
+    result["authority"] = False
+    result["artifact_ref"] = artifact_ref
+    result["requested_effect"] = requested_effect
+    result["principal"] = principal
+    result["target_url"] = target_url
+    return result
 
 
 def run_progressive_evidence(base_demo):
