@@ -60,8 +60,20 @@ def is_missing_auth(status, body):
     )
 
 
+def action_edge_upstream_ok(status, body):
+    return (
+        status == 200
+        and isinstance(body, dict)
+        and body.get("reachable_from_action_edge") is True
+        and body.get("parent_shield_mounted") is True
+        and body.get("runtime_identity_proven") is False
+    )
+
+
 def classify_summary(
     action_health_status,
+    action_upstream_status,
+    action_upstream_body,
     direct_unsigned_status,
     direct_unsigned_body,
     gatekeeper_status,
@@ -74,6 +86,7 @@ def classify_summary(
     public_reaches_action = is_missing_auth(public_unsigned_status, public_unsigned_body)
     direct_action_boundary_ok = is_missing_auth(direct_unsigned_status, direct_unsigned_body)
     gatekeeper_direct_ok = gatekeeper_status == 200 and gatekeeper_mount_ok
+    upstream_from_action_ok = action_edge_upstream_ok(action_upstream_status, action_upstream_body)
 
     if action_health_status != 200:
         return {
@@ -103,24 +116,28 @@ def classify_summary(
             "reason": "direct Gatekeeper health or parent-shield route mount is unavailable",
         }
 
+    if not upstream_from_action_ok:
+        return {
+            "status": "REPRODUCED",
+            "boundary": "action_edge_to_gatekeeper",
+            "reason": "Gatekeeper is healthy from the diagnostic shell but is not healthy from the action-edge process namespace",
+            "action_edge_upstream": action_upstream_body,
+        }
+
     if signed_status == "SKIPPED":
         return {
             "status": "READY_FOR_SIGNED_PROBE",
-            "boundary": "action_edge_to_gatekeeper",
-            "reason": "edge boundaries and direct V2 health are proven; signed credentials/artifact are required to reproduce the remaining hop",
+            "boundary": "signed_action",
+            "reason": "public edge, action edge, direct V2, and action-edge-to-V2 reachability are proven; signed credentials/artifact are required for the final reproduction",
         }
 
     if signed_status == 502:
         detail = signed_body.get("detail") if isinstance(signed_body, dict) else None
         return {
             "status": "REPRODUCED",
-            "boundary": "action_edge_to_gatekeeper",
-            "reason": "signed request passed public/action authentication but action-edge reported Gatekeeper unreachable",
+            "boundary": "action_edge_signed_gatekeeper_call",
+            "reason": "action-edge health proves its V2 health path is reachable, but the signed evaluation call still returned 502",
             "detail": detail,
-            "topology_warning": (
-                "Direct V2 health from this diagnostic process does not prove that "
-                "GATEKEEPER_BASE_URL is reachable from the action-edge process namespace."
-            ),
         }
 
     if signed_status is None:
@@ -132,7 +149,7 @@ def classify_summary(
 
     return {
         "status": "SIGNED_PROBE_COMPLETED",
-        "boundary": "action_edge_to_gatekeeper",
+        "boundary": "signed_action",
         "signed_status": signed_status,
         "reason": "signed request did not reproduce the prior 502",
     }
@@ -144,6 +161,13 @@ def main():
     action_health_status, action_health_body = request("GET", f"{ACTION_EDGE_URL}/health")
     print_result("action_edge_health", action_health_status, action_health_body)
     if action_health_status != 200:
+        failures += 1
+
+    action_upstream_status, action_upstream_body = request(
+        "GET", f"{ACTION_EDGE_URL}/health/upstream"
+    )
+    print_result("action_edge_gatekeeper_upstream", action_upstream_status, action_upstream_body)
+    if not action_edge_upstream_ok(action_upstream_status, action_upstream_body):
         failures += 1
 
     direct_unsigned_status, direct_unsigned_body = request(
@@ -233,6 +257,8 @@ def main():
 
     summary = classify_summary(
         action_health_status,
+        action_upstream_status,
+        action_upstream_body,
         direct_unsigned_status,
         direct_unsigned_body,
         gatekeeper_status,
