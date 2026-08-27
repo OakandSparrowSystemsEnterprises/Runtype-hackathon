@@ -3,7 +3,12 @@ import shutil
 import subprocess
 
 import arena
-from server import DemoHandler, PORT, ThreadingHTTPServer
+import server
+from security_probes import run_chain_verification_probe
+
+PORT = server.PORT
+DemoHandler = server.DemoHandler
+ThreadingHTTPServer = server.ThreadingHTTPServer
 
 
 def _credential(agent_id):
@@ -49,14 +54,30 @@ def _cotal_send_without_pipes(agent_id, mode, target, text):
 
 
 # On Windows, Cotal can leave inherited stdout/stderr pipe handles open after
-# the CLI itself exits. The normal arena capture path then waits for EOF and
-# times out even though the message was delivered. The live runtime does not
-# need CLI prose; the broker return code is the enforcement signal, so use
-# null-backed handles instead of pipes.
+# the CLI itself exits. The live runtime does not need CLI prose; the broker
+# return code is the enforcement signal, so use null-backed handles.
 arena._cotal_send = _cotal_send_without_pipes
+
+_base_run_arena = arena.run_arena
+
+
+def _run_arena_with_security(base_demo):
+    result = _base_run_arena(base_demo)
+    chain_verification = run_chain_verification_probe()
+    result["security"] = {
+        "chain_verification": chain_verification,
+    }
+    result["ok"] = bool(result.get("ok")) and chain_verification["ok"]
+    return result
+
+
+# server imported run_arena by value, so patch both references used by the
+# runtime after adding the live security probe.
+arena.run_arena = _run_arena_with_security
+server.run_arena = _run_arena_with_security
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("0.0.0.0", PORT), DemoHandler)
+    runtime = ThreadingHTTPServer(("0.0.0.0", PORT), DemoHandler)
     print(f"Gatekeeper Demo Orchestrator listening on :{PORT} (arena runtime)", flush=True)
-    server.serve_forever()
+    runtime.serve_forever()
