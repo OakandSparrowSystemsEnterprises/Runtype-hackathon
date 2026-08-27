@@ -9,10 +9,10 @@ Agents exchange artifacts, coordinate over messaging fabrics, and fan work out t
 ## The 60-second judge path
 
 1. Open the Day 2 Arena (public edge `/`, served by nginx; use the Cloudflare tunnel URL only when the Cloudflare edge script is actually running and the response carries Cloudflare runtime evidence).
-2. Click **RUN DAY 2 DEMO**. One live run turns fresh bytes into an immutable SHA-256 ArtifactRef; Agent A is authenticated and **denied (HTTP 403, no capability)**; the same artifact is handed to Agent B with `authority_transfer_from_artifact=false`; Agent B is independently governed by the real Gatekeeper V2 and the effect executes with a sealed receipt. Supporting evidence such as Cotal, Tenki, and AIsa×Mitosis resolves progressively **after** the verdict and may remain PENDING without touching the sealed verdict.
-3. Click **RUN DENIED PATH**. The same pipeline uses a boundary-restricted URL. If the mounted policy denies or holds it, that result is sealed with a receipt under the same evidence discipline as a permit. The UI does not invent a denial if the selected URL is permitted.
+2. Click **RUN LIVE GOVERNANCE ARENA**. One live run turns fresh bytes into an immutable SHA-256 ArtifactRef; Agent A is authenticated and **denied (HTTP 403, no capability)**; the same artifact is handed to Agent B with `authority_transfer_from_artifact=false`; Agent B is independently governed by the real Gatekeeper V2 and the effect executes with a sealed receipt. The run also exercises the Cotal coordination fabric, five governed domains, authoritative chain verification, and idempotent replay.
+3. The current Arena branch does **not** expose a separate “RUN DENIED PATH” button. The authority boundary is nevertheless demonstrated live in the same run: Agent A is denied execution while Agent B must independently satisfy Gatekeeper. A separate held/denied target may be exercised through the API when the mounted policy actually produces that result; the UI never invents a denial.
 
-Every chip and card on the page flips only on **runtime evidence from the current run**. Nothing is hardcoded LIVE.
+Every LIVE state shown by the demo must come from runtime evidence. Supporting evidence such as Tenki and AIsa×Mitosis may remain PENDING without touching the already-sealed Gatekeeper verdict.
 
 ## Architecture and sponsor roles
 
@@ -44,9 +44,15 @@ Structural invariants, enforced in code and demonstrated by the verified core pa
 
 ## Truth-in-status
 
-`HACKATHON_CHECKPOINT.md` is the authoritative status record, and the Arena chips are driven by per-run responses. At submission time, anything marked PENDING there remains visibly PENDING until its own real end-to-end proof succeeds. The Deterministic Steward is a settled design and is intentionally reported as **IMPLEMENTATION PENDING**. It is not part of the live demo path.
+`HACKATHON_CHECKPOINT.md` is the status record, and runtime responses are the source of truth for the current demo state.
 
-Tenki itself has a historical LIVE VERIFIED worker proof from snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098` and session `01a043be-5240-7bb3-a336-df794b64e56c`. The repository now binds a fresh demo run to Tenki by sending that run's exact `artifact_ref`, matching `artifact_sha256`, current `requested_effect`, and current principal, then validating those same fields on the returned non-authoritative claim. A fresh live local verification of that per-run binding remains PENDING until a template-started worker endpoint is reachable.
+The **Deterministic Steward is implemented** under contract `oasse.deterministic-steward.v2` and was exercised through the progressive evidence endpoint. Its final verified runtime status is **PARTIAL**, not implementation-pending: deterministic planning, bounded worker state, authority isolation, and the Cotal coordination worker executed successfully; the Tenki replica workers remained PENDING because no distinct reachable `/derive` endpoints were configured in that run. This does not alter the sealed Gatekeeper verdict.
+
+The verified progressive run preserved `authority_source="Gatekeeper"` and `gatekeeper_verdict_preserved=true`. Cotal coordination completed LIVE while Tenki remained PENDING. The public Cloudflare quick-tunnel path was independently verified with HTTP 200 and a real `CF-Ray` header.
+
+AIsa×Mitosis also has a separate LIVE runtime proof through `sponsor_aisa_mitosis.py`: a real AIsa.ONE Exa API result was hashed and successfully persisted into Mitosis Cortex with `authority=false`. The progressive evidence endpoint uses the separate `aisa_mitosis.py` MCP/API adapter and reports that plane PENDING unless that adapter’s own runtime environment (`AISA_API_BASE` / `AISA_API_KEY` and `MITOSIS_API_KEY`) is configured. A pending alternate adapter never changes the Gatekeeper result or invalidates the separate live sponsor round-trip.
+
+Tenki itself has a historical LIVE VERIFIED worker proof from snapshot `07fd77b8-7caf-400e-8e8e-42eb16396098` and session `01a043be-5240-7bb3-a336-df794b64e56c`. The repository binds a fresh demo run to Tenki by sending that run's exact `artifact_ref`, matching `artifact_sha256`, current `requested_effect`, and current principal, then validating those same fields on the returned non-authoritative claim. A fresh live local verification of that per-run binding remains PENDING until existing image-backed workers expose reachable endpoints. No additional Tenki provisioning is required to claim the core authority proof.
 
 ## Run it
 
@@ -57,17 +63,16 @@ Tenki itself has a historical LIVE VERIFIED worker proof from snapshot `07fd77b8
 # optional real Cloudflare edge in front of the public edge; becomes LIVE only with cf-ray evidence
 .\scripts\start_cloudflare_edge.ps1
 
-# Tenki: use the published gatekeeper-goi-worker-v2 template image so its baked start_cmd
-# launches /home/tenki/gatekeeper-tenki/worker.py automatically. Do not use snapshot+exec.
-$env:TENKI_IMAGE_REF = '<published-template-image-ref>'
-.\scripts\launch_tenki_swarm.ps1 -Width 2 -ImageRef $env:TENKI_IMAGE_REF
+# Tenki: bind only reachable image-backed worker endpoints when available.
+# Do not treat an unreachable endpoint as evidence that a new worker must be provisioned.
+# Supporting compute may remain PENDING without blocking the Gatekeeper proof.
 
 # sponsor planes become LIVE only with real credentials and successful round trips:
-#   AIsa:    AISA_API_BASE + AISA_API_KEY (+ AISA_MODEL)   |  or AISA_API_KEY for the Exa adapter
-#   Mitosis: MITOSIS_API_KEY (MCP write)                    |  or MITOSIS_OFFICE_ID + authenticated `mi` CLI
+#   AIsa/Mitosis integrated MCP adapter: AISA_API_BASE + AISA_API_KEY (+ AISA_MODEL) + MITOSIS_API_KEY
+#   Exa/CLI adapter: AISA_API_KEY + MITOSIS_OFFICE_ID (or MI_OFFICE_ID) + authenticated `mi` CLI
 ```
 
-If no Tenki image has been published yet, leave Tenki fresh-binding status PENDING rather than falling back to the snapshot-plus-`exec` path. The historical Tenki worker proof remains valid historical evidence but must never be replayed as the claim for a new ArtifactRef.
+If no reachable Tenki endpoint is available, leave Tenki fresh-binding status PENDING rather than falling back to the snapshot-plus-`exec` path. The historical Tenki worker proof remains valid historical evidence but must never be replayed as the claim for a new ArtifactRef.
 
 Verification coverage under `src/demo-orchestrator/` includes evidence-pipeline isolation, Tenki current-run claim binding and non-authority enforcement, and both AIsa×Mitosis adapters' authority boundaries. CI is intentionally conserved for final integration confidence rather than used for no-op status updates.
 
