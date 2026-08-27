@@ -5,7 +5,7 @@ param(
     [string]$TenkiCli = "/home/ankou/.local/bin/tenki",
     [string]$WorkerCommand = "python3 /home/tenki/gatekeeper-tenki/worker.py",
     [string[]]$ExistingSessionIds = @(),
-    [int]$Retries = 3,
+    [int]$Retries = 5,
     [switch]$Sticky
 )
 
@@ -23,9 +23,20 @@ if ($Retries -lt 1 -or $Retries -gt 8) {
 function Invoke-Tenki([string[]]$Arguments) {
     $lastOutput = @()
     for ($attempt = 1; $attempt -le $Retries; $attempt++) {
-        $output = & wsl.exe -d $WslDistribution -- $TenkiCli @Arguments 2>&1
-        $exitCode = $LASTEXITCODE
-        $lastOutput = @($output)
+        # Windows PowerShell 5.1 can promote native stderr from wsl.exe into a
+        # terminating RemoteException when the script-level preference is Stop.
+        # Temporarily allow stderr to flow into 2>&1 so we can inspect the real
+        # Tenki exit code and retry transient transport failures deliberately.
+        $savedPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            $output = & wsl.exe -d $WslDistribution -- $TenkiCli @Arguments 2>&1
+            $exitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $savedPreference
+        }
+
+        $lastOutput = @($output | ForEach-Object { $_.ToString() })
         if ($exitCode -eq 0) {
             return $lastOutput
         }
@@ -41,7 +52,7 @@ function Invoke-Tenki([string[]]$Arguments) {
             throw "Tenki command failed after $attempt attempt(s): $($Arguments -join ' ')`n$joined"
         }
 
-        $delayMs = 500 * $attempt
+        $delayMs = 750 * $attempt
         Write-Host "Tenki transport retry $attempt/$Retries after transient failure..."
         Start-Sleep -Milliseconds $delayMs
     }
