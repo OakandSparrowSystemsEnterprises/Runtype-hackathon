@@ -35,6 +35,39 @@ class TenkiSwarmContractTests(unittest.TestCase):
                 1.0,
             )
 
+    def test_nested_worker_cannot_manufacture_token(self):
+        plan = tenki_swarm.build_swarm_plan("sha256:demo")
+        with self.assertRaises(RuntimeError):
+            tenki_swarm._normalize_worker_response(
+                plan,
+                {
+                    "authority": False,
+                    "workers": [
+                        {
+                            "worker_id": "w1",
+                            "result": {"token": "worker-issued-token"},
+                        }
+                    ],
+                },
+                1.0,
+            )
+
+    def test_nested_aggregate_cannot_manufacture_gatekeeper_verdict(self):
+        plan = tenki_swarm.build_swarm_plan("sha256:demo")
+        with self.assertRaises(RuntimeError):
+            tenki_swarm._normalize_worker_response(
+                plan,
+                {
+                    "authority": False,
+                    "workers": [],
+                    "aggregate": {
+                        "claim": "derived-only",
+                        "gatekeeper_verdict": "GREEN",
+                    },
+                },
+                1.0,
+            )
+
     def test_live_normalization_preserves_raw_payload(self):
         plan = tenki_swarm.build_swarm_plan("sha256:demo")
         payload = {
