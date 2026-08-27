@@ -18,13 +18,17 @@ def emit(stage, status, **detail):
     print(json.dumps({"stage": stage, "status": status, **detail}, separators=(",", ":")))
 
 
-def run_checked(script, required_marker=None):
+def run_checked(script, required_marker=None, extra_env=None):
+    env = os.environ.copy()
+    if extra_env:
+        env.update(extra_env)
     proc = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / script)],
         cwd=ROOT,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        env=env,
     )
     output = proc.stdout.strip()
     if output:
@@ -65,6 +69,26 @@ def require(condition, stage, reason, **detail):
     raise RuntimeError(f"{stage}: {reason}")
 
 
+def resolve_diagnostic_secret(agent_id):
+    secret = os.environ.get("DIAGNOSTIC_AGENT_SECRET")
+    if secret:
+        return secret, "DIAGNOSTIC_AGENT_SECRET"
+
+    raw_keys = os.environ.get("GATEKEEPER_AGENT_KEYS_JSON")
+    if not raw_keys:
+        return None, None
+
+    try:
+        keys = json.loads(raw_keys)
+    except json.JSONDecodeError:
+        return None, None
+
+    candidate = keys.get(agent_id) if isinstance(keys, dict) else None
+    if isinstance(candidate, str) and candidate:
+        return candidate, "GATEKEEPER_AGENT_KEYS_JSON"
+    return None, None
+
+
 def main():
     require(
         bool(os.environ.get("GATEKEEPER_V2_SOURCE_ROOT")),
@@ -78,32 +102,59 @@ def main():
         "V2 source pin did not verify",
     )
 
-    required_diag = ("DIAGNOSTIC_AGENT_ID", "DIAGNOSTIC_AGENT_SECRET", "DIAGNOSTIC_ARTIFACT_REF")
-    missing_diag = [name for name in required_diag if not os.environ.get(name)]
+    agent_id = os.environ.get("DIAGNOSTIC_AGENT_ID", EXPECTED_PRINCIPAL)
+    diagnostic_secret, secret_source = resolve_diagnostic_secret(agent_id)
+    missing_diag = []
+    if not agent_id:
+        missing_diag.append("DIAGNOSTIC_AGENT_ID")
+    if not diagnostic_secret:
+        missing_diag.append("DIAGNOSTIC_AGENT_SECRET or matching GATEKEEPER_AGENT_KEYS_JSON key")
     require(
         not missing_diag,
         "signed_action_precondition",
-        "real signed diagnostic credentials and existing ArtifactRef are required",
+        "real signed diagnostic credentials are required",
         missing=missing_diag,
+        agent_id=agent_id,
+        secret_source=secret_source,
     )
 
-    require(
-        run_checked("diagnose_action_edge.py", '"status":"SIGNED_PROBE_COMPLETED"'),
-        "signed_action_502",
-        "signed-action diagnostic did not complete cleanly; Gate 0 cannot pass",
-    )
-
+    # Gate 0 owns freshness. Create the current artifact first, then bind the
+    # signed-action diagnostic to that exact ArtifactRef. Never require or replay
+    # a historical DIAGNOSTIC_ARTIFACT_REF as a precondition.
     verdict_status, verdict = post_json(
         "/api/demo/run",
         {"mode": "verdict", "intent": "Gate 0 fresh authority-transfer proof"},
     )
-    require(verdict_status == 200 and verdict.get("ok") is True, "fresh_core_proof", "fresh demo run failed", http_status=verdict_status)
 
-    artifact_ref = verdict.get("artifact_ref")
+    artifact_ref = verdict.get("artifact_ref") if isinstance(verdict, dict) else None
     require(
         isinstance(artifact_ref, str) and artifact_ref.startswith("sha256:") and len(artifact_ref) == 71,
-        "artifact_ref",
-        "fresh run did not return a valid immutable ArtifactRef",
+        "fresh_artifact",
+        "fresh demo attempt did not create a valid immutable ArtifactRef",
+        http_status=verdict_status,
+        artifact_ref=artifact_ref,
+    )
+
+    require(
+        run_checked(
+            "diagnose_action_edge.py",
+            '"status":"SIGNED_PROBE_COMPLETED"',
+            {
+                "DIAGNOSTIC_AGENT_ID": agent_id,
+                "DIAGNOSTIC_AGENT_SECRET": diagnostic_secret,
+                "DIAGNOSTIC_ARTIFACT_REF": artifact_ref,
+            },
+        ),
+        "signed_action_502",
+        "signed-action diagnostic did not complete cleanly against the fresh Gate 0 artifact; Gate 0 cannot pass",
+        artifact_ref=artifact_ref,
+    )
+
+    require(
+        verdict_status == 200 and verdict.get("ok") is True,
+        "fresh_core_proof",
+        "fresh demo run failed",
+        http_status=verdict_status,
         artifact_ref=artifact_ref,
     )
 
@@ -132,8 +183,17 @@ def main():
     )
 
     evidence_status, evidence = post_json("/api/demo/evidence", {"run_id": verdict.get("run_id")})
-    require(evidence_status == 200 and evidence.get("ok") is True, "progressive_evidence", "progressive evidence request failed", http_status=evidence_status)
-    require(evidence.get("gatekeeper_verdict_preserved") is True, "verdict_preservation", "supporting evidence did not preserve the sealed Gatekeeper verdict")
+    require(
+        evidence_status == 200 and evidence.get("ok") is True,
+        "progressive_evidence",
+        "progressive evidence request failed",
+        http_status=evidence_status,
+    )
+    require(
+        evidence.get("gatekeeper_verdict_preserved") is True,
+        "verdict_preservation",
+        "supporting evidence did not preserve the sealed Gatekeeper verdict",
+    )
 
     tenki = evidence.get("tenki") or {}
     claim = tenki.get("claim") or {}
