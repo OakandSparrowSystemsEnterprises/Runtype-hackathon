@@ -305,8 +305,17 @@ def run_arena(base_demo):
     artifact_ref = base_demo.get("artifact_ref")
     if not artifact_ref:
         raise RuntimeError("base demo did not return an artifact_ref")
-    cotal = run_cotal_probe(artifact_ref)
-    estate = run_estate()
+
+    # The Cotal authorization probes and the five-domain Gatekeeper estate are
+    # independent once the base ArtifactRef exists, so overlap them. We keep
+    # each domain's two authority calls sequential to preserve the direct
+    # previous_hash -> artifact_hash chain proof within that domain.
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        cotal_future = pool.submit(run_cotal_probe, artifact_ref)
+        estate_future = pool.submit(run_estate)
+        cotal = cotal_future.result()
+        estate = estate_future.result()
+
     return {
         "ok": bool(base_demo.get("ok")) and cotal["ok"] and estate["ok"],
         "thesis": "Work can move between agents. Authority remains independently enforced.",
