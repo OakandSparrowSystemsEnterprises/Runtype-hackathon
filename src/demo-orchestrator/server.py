@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Lock
 
 from arena import run_arena
 
@@ -32,6 +33,27 @@ except json.JSONDecodeError as exc:
 for agent_id in ("agent-a", "agent-b"):
     if not isinstance(AGENT_KEYS.get(agent_id), str):
         raise RuntimeError(f"{agent_id} must have a string signing key")
+
+
+VERDICT_CACHE = {}
+VERDICT_CACHE_LOCK = Lock()
+VERDICT_CACHE_LIMIT = 32
+
+
+def _cache_verdict(result):
+    run_id = result.get("run_id") if isinstance(result, dict) else None
+    if not run_id:
+        return
+    with VERDICT_CACHE_LOCK:
+        VERDICT_CACHE[run_id] = result
+        while len(VERDICT_CACHE) > VERDICT_CACHE_LIMIT:
+            oldest = next(iter(VERDICT_CACHE))
+            VERDICT_CACHE.pop(oldest, None)
+
+
+def _get_cached_verdict(run_id):
+    with VERDICT_CACHE_LOCK:
+        return VERDICT_CACHE.get(run_id)
 
 
 def signature_headers(agent_id, raw_body, artifact_digest=None):
@@ -215,7 +237,7 @@ def run_demo(target_url, intent):
 
 
 class DemoHandler(BaseHTTPRequestHandler):
-    server_version = "GatekeeperDemoOrchestrator/0.3"
+    server_version = "GatekeeperDemoOrchestrator/0.4"
 
     def send_json(self, status, payload):
         raw = json.dumps(
@@ -234,13 +256,18 @@ class DemoHandler(BaseHTTPRequestHandler):
             return self.send_json(200, {
                 "status": "ok",
                 "service": "gatekeeper-demo-orchestrator",
-                "arena": True
+                "arena": True,
+                "progressive_evidence": True
             })
 
         return self.send_json(404, {"error": "not_found"})
 
     def do_POST(self):
-        if self.path not in ("/api/demo/run", "/api/demo/arena"):
+        if self.path not in (
+            "/api/demo/run",
+            "/api/demo/arena",
+            "/api/demo/evidence"
+        ):
             return self.send_json(404, {"error": "not_found"})
 
         try:
@@ -257,6 +284,32 @@ class DemoHandler(BaseHTTPRequestHandler):
             supplied = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
             return self.send_json(400, {"error": "invalid_json"})
+
+        if self.path == "/api/demo/evidence":
+            run_id = supplied.get("run_id")
+            if not isinstance(run_id, str) or not run_id:
+                return self.send_json(400, {"error": "run_id_required"})
+
+            base_result = _get_cached_verdict(run_id)
+            if base_result is None:
+                return self.send_json(404, {
+                    "error": "verdict_not_found",
+                    "run_id": run_id
+                })
+
+            try:
+                result = run_arena(base_result)
+            except Exception as exc:
+                return self.send_json(500, {
+                    "error": "supporting_evidence_failure",
+                    "run_id": run_id,
+                    "detail": str(exc)
+                })
+
+            return self.send_json(
+                200 if result.get("ok") else 500,
+                result
+            )
 
         target_url = supplied.get(
             "url",
@@ -275,6 +328,7 @@ class DemoHandler(BaseHTTPRequestHandler):
 
         try:
             base_result = run_demo(target_url, intent)
+            _cache_verdict(base_result)
             result = run_arena(base_result) if arena_requested else base_result
         except Exception as exc:
             return self.send_json(500, {
