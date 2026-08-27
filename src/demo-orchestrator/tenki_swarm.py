@@ -11,6 +11,7 @@ TENKI_SNAPSHOT_ID = os.environ.get(
 )
 TENKI_STEWARD_URL = os.environ.get("TENKI_STEWARD_URL", "").strip()
 TENKI_STEWARD_TIMEOUT = float(os.environ.get("TENKI_STEWARD_TIMEOUT", "20"))
+TENKI_CAPTURED_RESPONSE_JSON = os.environ.get("TENKI_CAPTURED_RESPONSE_JSON", "").strip()
 
 NON_AUTHORITY_FIELDS = {
     "authority",
@@ -63,6 +64,7 @@ def _pending(plan, reason):
         "plan": plan,
         "reason": reason,
         "workers": [],
+        "claim": None,
         "aggregate": None,
     }
 
@@ -82,16 +84,31 @@ def _assert_non_authoritative(value, path="$"):
             _assert_non_authoritative(child, f"{path}[{index}]")
 
 
-def _normalize_worker_response(plan, payload, elapsed_ms):
-    """
-    Normalize an OASSE Steward response after a real Tenki-hosted worker endpoint
-    exists. The upstream payload is retained verbatim under `raw` so this module
-    never invents or silently reshapes Tenki's live response contract.
-    """
+def _normalize_worker_response(plan, payload, elapsed_ms, source="live_http"):
+    """Normalize the verified Tenki derive response without changing its shape."""
     if not isinstance(payload, dict):
         raise RuntimeError("Tenki Steward response must be a JSON object")
 
     _assert_non_authoritative(payload)
+
+    if payload.get("ok") is not True:
+        raise RuntimeError("Tenki derive response did not report ok=true")
+
+    claim = payload.get("claim")
+    if not isinstance(claim, dict):
+        raise RuntimeError("Tenki derive response must contain a claim object")
+
+    if claim.get("authority") is not False:
+        raise RuntimeError("Tenki derived claim must explicitly set authority=false")
+
+    if claim.get("artifact_ref") != plan["artifact_ref"]:
+        raise RuntimeError("Tenki derived claim artifact_ref does not match governed ArtifactRef")
+
+    if claim.get("compute_plane") != "tenki":
+        raise RuntimeError("Tenki derived claim must identify compute_plane=tenki")
+
+    if claim.get("role") != "derived_claim_only":
+        raise RuntimeError("Tenki derived claim must remain derived_claim_only")
 
     return {
         "status": "LIVE",
@@ -101,20 +118,36 @@ def _normalize_worker_response(plan, payload, elapsed_ms):
         "authority": False,
         "plan": plan,
         "elapsed_ms": round(elapsed_ms, 2),
-        "workers": payload.get("workers", []),
-        "aggregate": payload.get("aggregate"),
+        "source": source,
+        "workers": [],
+        "claim": claim,
+        "aggregate": None,
         "raw": payload,
     }
+
+
+def _captured_response(plan):
+    """Bind an already-captured real Tenki response exactly as observed."""
+    if not TENKI_CAPTURED_RESPONSE_JSON:
+        return None
+    try:
+        payload = json.loads(TENKI_CAPTURED_RESPONSE_JSON)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("TENKI_CAPTURED_RESPONSE_JSON must be valid JSON") from exc
+    return _normalize_worker_response(plan, payload, 0.0, source="captured_live_response")
 
 
 def run_tenki_swarm(artifact_ref):
     plan = build_swarm_plan(artifact_ref)
 
+    captured = _captured_response(plan)
+    if captured is not None:
+        return captured
+
     if not TENKI_STEWARD_URL:
         return _pending(
             plan,
-            "TENKI_STEWARD_URL is unset; repository contract is ready but live "
-            "snapshot execution has not been captured yet.",
+            "TENKI_STEWARD_URL is unset; no live Tenki derive response is bound to this runtime.",
         )
 
     request_body = json.dumps(
