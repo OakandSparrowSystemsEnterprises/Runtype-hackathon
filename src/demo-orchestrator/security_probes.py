@@ -5,6 +5,7 @@ import urllib.request
 import uuid
 
 GATEKEEPER_BASE = os.environ.get("GATEKEEPER_BASE_URL", "http://127.0.0.1:8787").rstrip("/")
+CHAIN_VERIFY_PATH = "/api/v1/chain/verify"
 
 
 def _request_json(method, path, *, headers=None, timeout=20):
@@ -30,7 +31,7 @@ def run_chain_verification_probe():
     key = f"arena-chain-verify-{uuid.uuid4().hex}"
     status, payload = _request_json(
         "GET",
-        "/api/domains/parent-shield/chain/verify",
+        CHAIN_VERIFY_PATH,
         headers={
             "X-Idempotency-Key": key,
             "X-Case-Id": "hackathon-v2-chain-verify",
@@ -83,12 +84,12 @@ def run_idempotency_probe():
 
     first_status, first_payload = _request_json(
         "GET",
-        "/api/domains/parent-shield/chain/verify",
+        CHAIN_VERIFY_PATH,
         headers=headers,
     )
     replay_status, replay_payload = _request_json(
         "GET",
-        "/api/domains/parent-shield/chain/verify",
+        CHAIN_VERIFY_PATH,
         headers=headers,
     )
 
