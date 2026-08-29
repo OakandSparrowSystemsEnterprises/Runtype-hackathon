@@ -121,13 +121,11 @@ def run_progressive_evidence(base_demo):
     cotal = existing.get("cotal") or {"ok": False, "status": "UNAVAILABLE"}
     estate = existing.get("estate") or {"ok": False, "status": "UNAVAILABLE"}
 
-    tenki = {"status": "PENDING", "live": False, "authority": False}
-    for worker in steward.get("workers") or []:
-        if worker.get("plane") == "tenki":
-            candidate = worker.get("output")
-            if isinstance(candidate, dict):
-                tenki = candidate
-            break
+    tenki = steward.get("tenki_swarm") or {
+        "status": "PENDING",
+        "live": False,
+        "authority": False,
+    }
 
     steward_live = (
         steward.get("status") == "LIVE"

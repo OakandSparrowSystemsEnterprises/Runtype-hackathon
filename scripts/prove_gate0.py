@@ -193,9 +193,16 @@ def main():
     )
 
     steward = evidence.get("deterministic_steward") or {}
+    steward_status = (
+        "LIVE"
+        if steward.get("status") == "LIVE"
+        and steward.get("implemented") is True
+        and steward.get("authority") is False
+        else steward.get("status") or "PENDING"
+    )
     emit(
         "deterministic_steward",
-        "IMPLEMENTATION_PENDING",
+        steward_status,
         core_gate_blocking=False,
         reported_runtime_status=steward.get("status"),
         authority=False,

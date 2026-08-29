@@ -6,6 +6,7 @@ import arena
 import server
 from security_probes import run_chain_verification_probe, run_idempotency_probe
 from tenki_swarm import run_tenki_swarm
+from deterministic_steward import run_deterministic_steward
 
 PORT = server.PORT
 DemoHandler = server.DemoHandler
@@ -90,11 +91,22 @@ def _run_arena_with_security(base_demo):
         "idempotency": idempotency,
     }
     result["tenki"] = tenki
-    result["deterministic_steward"] = {
-        "status": "IMPLEMENTATION_PENDING",
-        "live": False,
-        "authority": False,
-    }
+    try:
+        steward = run_deterministic_steward(
+            base_demo.get("artifact_ref"),
+            base_demo.get("requested_effect") or "parent-shield.navigation",
+            base_demo.get("effect_principal") or "agent-b",
+        )
+    except Exception as exc:
+        steward = {
+            "status": "FAILED",
+            "live": False,
+            "implemented": True,
+            "authority": False,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+    result["deterministic_steward"] = steward
     result["ok"] = (
         bool(result.get("ok"))
         and chain_verification["ok"]

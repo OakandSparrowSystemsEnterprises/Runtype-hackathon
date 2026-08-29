@@ -1,0 +1,1224 @@
+﻿{
+    "ok":  true,
+    "thesis":  "Work can move between agents. Authority remains independently enforced.",
+    "base_demo":  {
+                      "ok":  true,
+                      "run_id":  "f0397d499c13403aab9a8d66b5ef3418",
+                      "thesis":  "The artifact can move. Authority cannot.",
+                      "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                      "requested_effect":  "parent-shield.navigation",
+                      "effect_principal":  "agent-b",
+                      "target_url":  "https://en.wikipedia.org/wiki/Math",
+                      "agent_a":  {
+                                      "authenticated":  true,
+                                      "authorized":  false,
+                                      "status":  403
+                                  },
+                      "agent_b":  {
+                                      "principal":  "agent-b",
+                                      "authenticated":  true,
+                                      "authorized_to_request":  true,
+                                      "status":  200
+                                  },
+                      "authority_transfer_from_artifact":  false,
+                      "latency":  {
+                                      "gatekeeper_v2_hop_ms":  18.77,
+                                      "authority_transfer_proof_ms":  28.92,
+                                      "gatekeeper_latency_source":  "action-edge measured V2 evaluate hop",
+                                      "proof_latency_source":  "artifact ingress + A deny + handoff + B governed action"
+                                  },
+                      "gatekeeper":  {
+                                         "formal":  "permit",
+                                         "product":  "GREEN",
+                                         "execution":  "allowed",
+                                         "authority":  {
+                                                           "runtime":  "gatekeeper-v2-python",
+                                                           "outcome":  "permitted-and-effected",
+                                                           "actuator":  "parent-shield-browser-navigation"
+                                                       },
+                                         "artifact":  {
+                                                          "id":  "art-0000015510",
+                                                          "operation":  "parent-shield-enforce-navigation-eac349d3c0e246ed9ec466f74d929f23",
+                                                          "case_id":  "case-6b5303815da249278d5b669b3e0a0d58",
+                                                          "tenant":  "parent-shield-family-demo",
+                                                          "principal":  "parent-shield-child-demo",
+                                                          "domain":  "parent-shield",
+                                                          "jurisdiction":  "us-ca",
+                                                          "outcome":  "permitted-and-effected",
+                                                          "evidence_bundle_hash":  "27dc9050e566314b05021690717b90f78e078246b303c5731aefd8db7cc99132",
+                                                          "sip_verdict_hash":  "27e391524fd6b7eca11684103f8ac26966a4abf51b7b5c3ce1de46c4657028ee",
+                                                          "gate1_hash":  "016594dee9fe1dae8f7625c95de1d0e7a9a707916ebd5aa374c5ee5a5fd3aadf",
+                                                          "gate2_hash":  "f8cbdc79bc971e097b19488c316d806823bbb378588f94ef8d481d6bc1ea3bac",
+                                                          "result_hash":  "12fb851a66aeb53641f35fe35d8471695ed60f356f9fd060687504a70745f7b3",
+                                                          "actuation":  {
+                                                                            "kind":  "parent-shield-browser-navigation",
+                                                                            "actuator":  "parent-shield-browser-navigation",
+                                                                            "effect_type":  "parent-shield.navigation-allow",
+                                                                            "browser_action":  "allow-navigation",
+                                                                            "execution":  "allowed",
+                                                                            "redirect_path":  null,
+                                                                            "origin":  "https://en.wikipedia.org",
+                                                                            "target_url_hash":  "sha256:df52345ece6e9e3e726a073214e8c0bd2d62b4ec3ee90d0bd68d103e174b68d4",
+                                                                            "request_access_available":  true,
+                                                                            "formal_verdict":  "permit",
+                                                                            "product_verdict":  "GREEN",
+                                                                            "succeeded":  true,
+                                                                            "raw_url_retained":  false,
+                                                                            "page_content_collected":  false
+                                                                        },
+                                                          "policy_world":  "parent-shield-v2-world",
+                                                          "policy_world_version":  "1.1.0",
+                                                          "canonicalization_profile":  "gdrp-canonical/1.0.0",
+                                                          "sealed_at":  "2026-08-29T17:24:43.652095Z",
+                                                          "previous_hash":  "b1d525850349b1c342e4ede6e212e133ba50e2b85e9ca060f9cff4e69a916100",
+                                                          "artifact_hash":  "caafd53cb9aae8a1c2ac323cdcacf4dc268aeff8645c0115d0fe62ce97b903b6"
+                                                      }
+                                     },
+                      "timeline":  [
+                                       {
+                                           "stage":  "artifact_created",
+                                           "principal":  "agent-a",
+                                           "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                           "status":  201
+                                       },
+                                       {
+                                           "stage":  "agent_a_action",
+                                           "principal":  "agent-a",
+                                           "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                           "status":  403,
+                                           "result":  {
+                                                          "error":  "capability_denied",
+                                                          "principal":  "agent-a",
+                                                          "required_capability":  "parent-shield.navigation"
+                                                      }
+                                       },
+                                       {
+                                           "stage":  "artifact_handoff",
+                                           "from":  "agent-a",
+                                           "to":  "agent-b",
+                                           "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                           "authority_transferred":  false
+                                       },
+                                       {
+                                           "stage":  "agent_b_action",
+                                           "principal":  "agent-b",
+                                           "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                           "status":  200,
+                                           "result":  {
+                                                          "external_identity":  {
+                                                                                    "principal":  "agent-b",
+                                                                                    "verification":  "hmac-sha256",
+                                                                                    "bound_sha256":  "37e9e3b555916efc36f843b4e2947b2e425bde3c30044560ea0e73672dcafec5"
+                                                                                },
+                                                          "capability":  "parent-shield.navigation",
+                                                          "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                          "request_sha256":  "37e9e3b555916efc36f843b4e2947b2e425bde3c30044560ea0e73672dcafec5",
+                                                          "authority_transfer_from_artifact":  false,
+                                                          "gatekeeper_upstream_latency_ms":  18.77,
+                                                          "runtime_identity_proven":  false,
+                                                          "gatekeeper":  {
+                                                                             "formal":  "permit",
+                                                                             "product":  "GREEN",
+                                                                             "execution":  "allowed",
+                                                                             "title":  "Allowed",
+                                                                             "child_message":  "This page is allowed by your family safety settings.",
+                                                                             "parent_explanation":  "The policy pack allowed the navigation. Plain permits are not recorded, so the boundary never becomes surveillance.",
+                                                                             "rule_id":  "no_blocking_rule_fired",
+                                                                             "rules_fired":  [
+
+                                                                                             ],
+                                                                             "reason":  "no active rule blocked this action",
+                                                                             "origin":  "https://en.wikipedia.org",
+                                                                             "host":  "en.wikipedia.org",
+                                                                             "categories":  [
+
+                                                                                            ],
+                                                                             "recognized":  "education",
+                                                                             "evidence":  {
+
+                                                                                          },
+                                                                             "observed_intent":  "full V2 agentic harness final live run",
+                                                                             "profile_id":  "early_child",
+                                                                             "pack_id":  "guardian_family_default_v0.1",
+                                                                             "evaluated_at":  "2026-08-29T17:24:43.639Z",
+                                                                             "seal_recommended":  false,
+                                                                             "navigation":  {
+                                                                                                "kind":  "parent-shield-browser-navigation",
+                                                                                                "actuator":  "parent-shield-browser-navigation",
+                                                                                                "effect_type":  "parent-shield.navigation-allow",
+                                                                                                "browser_action":  "allow-navigation",
+                                                                                                "execution":  "allowed",
+                                                                                                "redirect_path":  null,
+                                                                                                "origin":  "https://en.wikipedia.org",
+                                                                                                "target_url_hash":  "sha256:df52345ece6e9e3e726a073214e8c0bd2d62b4ec3ee90d0bd68d103e174b68d4",
+                                                                                                "request_access_available":  true,
+                                                                                                "formal_verdict":  "permit",
+                                                                                                "product_verdict":  "GREEN",
+                                                                                                "succeeded":  true,
+                                                                                                "raw_url_retained":  false,
+                                                                                                "page_content_collected":  false
+                                                                                            },
+                                                                             "authority":  {
+                                                                                               "runtime":  "gatekeeper-v2-python",
+                                                                                               "outcome":  "permitted-and-effected",
+                                                                                               "actuator":  "parent-shield-browser-navigation"
+                                                                                           },
+                                                                             "artifact":  {
+                                                                                              "id":  "art-0000015510",
+                                                                                              "operation":  "parent-shield-enforce-navigation-eac349d3c0e246ed9ec466f74d929f23",
+                                                                                              "case_id":  "case-6b5303815da249278d5b669b3e0a0d58",
+                                                                                              "tenant":  "parent-shield-family-demo",
+                                                                                              "principal":  "parent-shield-child-demo",
+                                                                                              "domain":  "parent-shield",
+                                                                                              "jurisdiction":  "us-ca",
+                                                                                              "outcome":  "permitted-and-effected",
+                                                                                              "evidence_bundle_hash":  "27dc9050e566314b05021690717b90f78e078246b303c5731aefd8db7cc99132",
+                                                                                              "sip_verdict_hash":  "27e391524fd6b7eca11684103f8ac26966a4abf51b7b5c3ce1de46c4657028ee",
+                                                                                              "gate1_hash":  "016594dee9fe1dae8f7625c95de1d0e7a9a707916ebd5aa374c5ee5a5fd3aadf",
+                                                                                              "gate2_hash":  "f8cbdc79bc971e097b19488c316d806823bbb378588f94ef8d481d6bc1ea3bac",
+                                                                                              "result_hash":  "12fb851a66aeb53641f35fe35d8471695ed60f356f9fd060687504a70745f7b3",
+                                                                                              "actuation":  {
+                                                                                                                "kind":  "parent-shield-browser-navigation",
+                                                                                                                "actuator":  "parent-shield-browser-navigation",
+                                                                                                                "effect_type":  "parent-shield.navigation-allow",
+                                                                                                                "browser_action":  "allow-navigation",
+                                                                                                                "execution":  "allowed",
+                                                                                                                "redirect_path":  null,
+                                                                                                                "origin":  "https://en.wikipedia.org",
+                                                                                                                "target_url_hash":  "sha256:df52345ece6e9e3e726a073214e8c0bd2d62b4ec3ee90d0bd68d103e174b68d4",
+                                                                                                                "request_access_available":  true,
+                                                                                                                "formal_verdict":  "permit",
+                                                                                                                "product_verdict":  "GREEN",
+                                                                                                                "succeeded":  true,
+                                                                                                                "raw_url_retained":  false,
+                                                                                                                "page_content_collected":  false
+                                                                                                            },
+                                                                                              "policy_world":  "parent-shield-v2-world",
+                                                                                              "policy_world_version":  "1.1.0",
+                                                                                              "canonicalization_profile":  "gdrp-canonical/1.0.0",
+                                                                                              "sealed_at":  "2026-08-29T17:24:43.652095Z",
+                                                                                              "previous_hash":  "b1d525850349b1c342e4ede6e212e133ba50e2b85e9ca060f9cff4e69a916100",
+                                                                                              "artifact_hash":  "caafd53cb9aae8a1c2ac323cdcacf4dc268aeff8645c0115d0fe62ce97b903b6"
+                                                                                          },
+                                                                             "replay_endpoint":  "/api/v1/replay"
+                                                                         }
+                                                      }
+                                       }
+                                   ]
+                  },
+    "cotal":  {
+                  "ok":  true,
+                  "swarm_live":  true,
+                  "steward_assignment":  {
+                                             "agent":  "steward",
+                                             "mode":  "msg",
+                                             "target":  "swarm",
+                                             "allowed":  true,
+                                             "returncode":  0,
+                                             "detail":  ""
+                                         },
+                  "agent_a_handoff":  {
+                                          "agent":  "agent-a",
+                                          "mode":  "msg",
+                                          "target":  "artifacts",
+                                          "allowed":  true,
+                                          "returncode":  0,
+                                          "detail":  ""
+                                      },
+                  "agent_a_execution":  {
+                                            "agent":  "agent-a",
+                                            "mode":  "msg",
+                                            "target":  "execution",
+                                            "allowed":  false,
+                                            "returncode":  1,
+                                            "detail":  ""
+                                        },
+                  "agent_b_execution":  {
+                                            "agent":  "agent-b",
+                                            "mode":  "msg",
+                                            "target":  "execution",
+                                            "allowed":  true,
+                                            "returncode":  0,
+                                            "detail":  ""
+                                        }
+              },
+    "estate":  {
+                   "ok":  true,
+                   "run_id":  "3475b1cf6ebe498dacdd7d74f30b595a",
+                   "gateway":  "http://127.0.0.1:8787",
+                   "domains":  [
+                                   {
+                                       "domain":  "parent-shield",
+                                       "path":  "/api/domains/parent-shield/navigation/evaluate",
+                                       "ok":  true,
+                                       "chained":  true,
+                                       "attempts":  [
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  "permit",
+                                                            "product":  "GREEN",
+                                                            "execution":  "allowed",
+                                                            "authority":  {
+                                                                              "runtime":  "gatekeeper-v2-python",
+                                                                              "outcome":  "permitted-and-effected",
+                                                                              "actuator":  "parent-shield-browser-navigation"
+                                                                          },
+                                                            "artifact":  {
+                                                                             "id":  "art-0000015535",
+                                                                             "domain":  "parent-shield",
+                                                                             "tenant":  "parent-shield-family-demo",
+                                                                             "principal":  "parent-shield-child-demo",
+                                                                             "outcome":  "permitted-and-effected",
+                                                                             "gate1_hash":  "53fc9f4dff6d37cca7f71d1080358c0f930a029ce0188614c5655f6712ce0f53",
+                                                                             "gate2_hash":  "2bb1a1d7b52e47a1104455120d08a9494b0fe5ae254dec8d81c10876527fd6a3",
+                                                                             "result_hash":  "9846cc95746dbec09df9953d344c598b146f694aa654ac94ca3f370abe438602",
+                                                                             "previous_hash":  "caafd53cb9aae8a1c2ac323cdcacf4dc268aeff8645c0115d0fe62ce97b903b6",
+                                                                             "artifact_hash":  "0fe75548de027d32852cd7a66fb1bcf747bdccd07766e956cac6306f976ce5f0",
+                                                                             "evidence_bundle_hash":  "e3298844997b7edad81d96f21bd9ea0d614b57cc531de9b734f8bf8a01f867cb",
+                                                                             "actuation":  {
+                                                                                               "kind":  "parent-shield-browser-navigation",
+                                                                                               "actuator":  "parent-shield-browser-navigation",
+                                                                                               "effect_type":  "parent-shield.navigation-allow",
+                                                                                               "browser_action":  "allow-navigation",
+                                                                                               "execution":  "allowed",
+                                                                                               "redirect_path":  null,
+                                                                                               "origin":  "https://en.wikipedia.org",
+                                                                                               "target_url_hash":  "sha256:6d90af33d816d1b2c2a2e9d277e72862ff076c265da2756ece7d15a517070f5f",
+                                                                                               "request_access_available":  true,
+                                                                                               "formal_verdict":  "permit",
+                                                                                               "product_verdict":  "GREEN",
+                                                                                               "succeeded":  true,
+                                                                                               "raw_url_retained":  false,
+                                                                                               "page_content_collected":  false
+                                                                                           },
+                                                                             "sealed_at":  "2026-08-29T17:24:43.672823Z"
+                                                                         },
+                                                            "title":  "Allowed",
+                                                            "rule_id":  "no_blocking_rule_fired",
+                                                            "reason":  "no active rule blocked this action",
+                                                            "recognized":  "education"
+                                                        },
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  "permit",
+                                                            "product":  "GREEN",
+                                                            "execution":  "allowed",
+                                                            "authority":  {
+                                                                              "runtime":  "gatekeeper-v2-python",
+                                                                              "outcome":  "permitted-and-effected",
+                                                                              "actuator":  "parent-shield-browser-navigation"
+                                                                          },
+                                                            "artifact":  {
+                                                                             "id":  "art-0000015560",
+                                                                             "domain":  "parent-shield",
+                                                                             "tenant":  "parent-shield-family-demo",
+                                                                             "principal":  "parent-shield-child-demo",
+                                                                             "outcome":  "permitted-and-effected",
+                                                                             "gate1_hash":  "53fc9f4dff6d37cca7f71d1080358c0f930a029ce0188614c5655f6712ce0f53",
+                                                                             "gate2_hash":  "4e3265a27b3f77902815735c110d00c8420d5776b67c49a3f501626497547719",
+                                                                             "result_hash":  "1a36cfbaa9e0758057652778aa8ff461c2c78efc8aa55c4d3751002aaa2c933c",
+                                                                             "previous_hash":  "0fe75548de027d32852cd7a66fb1bcf747bdccd07766e956cac6306f976ce5f0",
+                                                                             "artifact_hash":  "8f6c35eda7c9064924bf53ae4f58fb0fe63a40ef47cd0a8bac0df752074511b6",
+                                                                             "evidence_bundle_hash":  "e3298844997b7edad81d96f21bd9ea0d614b57cc531de9b734f8bf8a01f867cb",
+                                                                             "actuation":  {
+                                                                                               "kind":  "parent-shield-browser-navigation",
+                                                                                               "actuator":  "parent-shield-browser-navigation",
+                                                                                               "effect_type":  "parent-shield.navigation-allow",
+                                                                                               "browser_action":  "allow-navigation",
+                                                                                               "execution":  "allowed",
+                                                                                               "redirect_path":  null,
+                                                                                               "origin":  "https://en.wikipedia.org",
+                                                                                               "target_url_hash":  "sha256:6d90af33d816d1b2c2a2e9d277e72862ff076c265da2756ece7d15a517070f5f",
+                                                                                               "request_access_available":  true,
+                                                                                               "formal_verdict":  "permit",
+                                                                                               "product_verdict":  "GREEN",
+                                                                                               "succeeded":  true,
+                                                                                               "raw_url_retained":  false,
+                                                                                               "page_content_collected":  false
+                                                                                           },
+                                                                             "sealed_at":  "2026-08-29T17:24:43.697225Z"
+                                                                         },
+                                                            "title":  "Allowed",
+                                                            "rule_id":  "no_blocking_rule_fired",
+                                                            "reason":  "no active rule blocked this action",
+                                                            "recognized":  "education"
+                                                        }
+                                                    ]
+                                   },
+                                   {
+                                       "domain":  "boundarycast",
+                                       "path":  "/api/domains/boundarycast/personal-forecast",
+                                       "ok":  true,
+                                       "chained":  true,
+                                       "attempts":  [
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  "BoundaryCast",
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000006384",
+                                                                             "domain":  "boundarycast",
+                                                                             "tenant":  "boundarycast_demo_user",
+                                                                             "principal":  "boundarycast-demo-principal",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "13259cb11c607ba370a24a94586f0883d13d1bea8060df447a2d3f206410aeda",
+                                                                             "gate2_hash":  "5216139272928ca0f8ab77129f55e31a72bce4581b39e8aa19e3a5bce403230c",
+                                                                             "result_hash":  "3ba37f2626dd2c59459fa4f03a0448495a474fca16da991a1a2f326d4425d5c4",
+                                                                             "previous_hash":  "7815379a70a2ed5b83c36188888945af858b003261ce1d70f2a5a2982874e5ff",
+                                                                             "artifact_hash":  "4b808564804d084994a7de1362bec3f064a33f806c71e839b57924e1b0183749",
+                                                                             "evidence_bundle_hash":  "6c54d397d1813923f4a85d5855da5fb375ee29a8f324bdd2e7a9c20659aac2ac",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.714443Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        },
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  "BoundaryCast",
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000006408",
+                                                                             "domain":  "boundarycast",
+                                                                             "tenant":  "boundarycast_demo_user",
+                                                                             "principal":  "boundarycast-demo-principal",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "13259cb11c607ba370a24a94586f0883d13d1bea8060df447a2d3f206410aeda",
+                                                                             "gate2_hash":  "e001c9e18f67051193bb3435c882a12819cee70b396e948427870e6c17b6d104",
+                                                                             "result_hash":  "3ba37f2626dd2c59459fa4f03a0448495a474fca16da991a1a2f326d4425d5c4",
+                                                                             "previous_hash":  "4b808564804d084994a7de1362bec3f064a33f806c71e839b57924e1b0183749",
+                                                                             "artifact_hash":  "81e80ef1776dd68a78c1450ceefb26b84e57680a208d8ec0363e8d67f88c94e9",
+                                                                             "evidence_bundle_hash":  "f1cdc8fceb6d7b4375c9a203147491327186dcece33793f3e0ca5b8c4a17305d",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.734246Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        }
+                                                    ]
+                                   },
+                                   {
+                                       "domain":  "sentinelmed",
+                                       "path":  "/api/domains/sentinelmed/classify",
+                                       "ok":  true,
+                                       "chained":  true,
+                                       "attempts":  [
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  null,
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000005180",
+                                                                             "domain":  "sentinelmed",
+                                                                             "tenant":  "sentinelmed-demo",
+                                                                             "principal":  "sentinelmed-patient",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "bcb2e85c5bb1989330eb6f3ffbcdcfe957a5bea54761b311a439f7ec73c08d99",
+                                                                             "gate2_hash":  "ef056185c1c0d0eb4fe794577d13d1e625fdadd4dbd2ed0722adf2024021d830",
+                                                                             "result_hash":  "7d73d098f6ade6c6990514ee6a257c98ec3f22972652ca21618c9a2fe3b2c3d7",
+                                                                             "previous_hash":  "3a6912f5ac040f5f16c5720a05492984ade8fb76d780b338da61b072174e8482",
+                                                                             "artifact_hash":  "7bc3b120b4853dbc16b7d3b80748880cc9b608be10dbc9080e6b54031d9690d3",
+                                                                             "evidence_bundle_hash":  "ab3ce9e0e02efa5043bb6891b1a8ac7ba840749f97af122be4b4ae6cf1450b16",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.752989Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        },
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  null,
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000005200",
+                                                                             "domain":  "sentinelmed",
+                                                                             "tenant":  "sentinelmed-demo",
+                                                                             "principal":  "sentinelmed-patient",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "bcb2e85c5bb1989330eb6f3ffbcdcfe957a5bea54761b311a439f7ec73c08d99",
+                                                                             "gate2_hash":  "ef056185c1c0d0eb4fe794577d13d1e625fdadd4dbd2ed0722adf2024021d830",
+                                                                             "result_hash":  "7d73d098f6ade6c6990514ee6a257c98ec3f22972652ca21618c9a2fe3b2c3d7",
+                                                                             "previous_hash":  "7bc3b120b4853dbc16b7d3b80748880cc9b608be10dbc9080e6b54031d9690d3",
+                                                                             "artifact_hash":  "2a24131383fd364cab48640160e45c356dd7f486a6ce909e61edeb6ca245fe1c",
+                                                                             "evidence_bundle_hash":  "ab3ce9e0e02efa5043bb6891b1a8ac7ba840749f97af122be4b4ae6cf1450b16",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.772100Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        }
+                                                    ]
+                                   },
+                                   {
+                                       "domain":  "vinguard",
+                                       "path":  "/api/domains/vinguard/history",
+                                       "ok":  true,
+                                       "chained":  true,
+                                       "attempts":  [
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  null,
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000005180",
+                                                                             "domain":  "vinguard",
+                                                                             "tenant":  "vinguard-default",
+                                                                             "principal":  "vinguard-user",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "3a7f7aa539c6433cc9c887b451a37906f122dc778060be1082516c55666487ac",
+                                                                             "gate2_hash":  "f15d79eadbfcf16db3dc011a15481d413ec88409157ecc7047cbf07f71283637",
+                                                                             "result_hash":  "e9e35c4a4de5d9b459f9f9314b90a8d7ec06b28ca9e1f760a5376bc50b41eeda",
+                                                                             "previous_hash":  "c4ca324c7170625a758671661bce07610332818c0797f67542fdc59e328dc259",
+                                                                             "artifact_hash":  "68ad5c2fc1bce2396a53f458f3c418fb9a4621ce45f506266db1746f511008f8",
+                                                                             "evidence_bundle_hash":  "3b34725002f6f14deb764c3d5249d3c87d2421f97318693d4a56e8baaa32c1fa",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.792609Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        },
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  null,
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000005200",
+                                                                             "domain":  "vinguard",
+                                                                             "tenant":  "vinguard-default",
+                                                                             "principal":  "vinguard-user",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "3a7f7aa539c6433cc9c887b451a37906f122dc778060be1082516c55666487ac",
+                                                                             "gate2_hash":  "f15d79eadbfcf16db3dc011a15481d413ec88409157ecc7047cbf07f71283637",
+                                                                             "result_hash":  "e9e35c4a4de5d9b459f9f9314b90a8d7ec06b28ca9e1f760a5376bc50b41eeda",
+                                                                             "previous_hash":  "68ad5c2fc1bce2396a53f458f3c418fb9a4621ce45f506266db1746f511008f8",
+                                                                             "artifact_hash":  "98b30fb490221bf22caab54f867fd3d99b2cb60eae4f29eeaefa9bbfcbc596f6",
+                                                                             "evidence_bundle_hash":  "3b34725002f6f14deb764c3d5249d3c87d2421f97318693d4a56e8baaa32c1fa",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.809618Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        }
+                                                    ]
+                                   },
+                                   {
+                                       "domain":  "tbdhousing",
+                                       "path":  "/api/domains/tbdhousing/listings",
+                                       "ok":  true,
+                                       "chained":  true,
+                                       "attempts":  [
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  null,
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000005180",
+                                                                             "domain":  "tbdhousing",
+                                                                             "tenant":  "tbdhousing-broker",
+                                                                             "principal":  "tbdhousing-broker-user",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "fcffcefbfc30bf4027f109885e127941e92cfa6f16e39c75131f41d214e361b7",
+                                                                             "gate2_hash":  "b3952976a80fa984ecbe0ef0a34c24eaaaa1c452c64cc4089ef6eb20502ccb45",
+                                                                             "result_hash":  "5b86bb3d6dc237dbac0f5ead4988b6dcbb1fe538bdb05e16e3b33734112ab193",
+                                                                             "previous_hash":  "3d02667943dc9a13f45e5429d02759500b22bfda439e23badc70b75900d1ef3e",
+                                                                             "artifact_hash":  "eaaf985a6793f44a31d36c698e4576e1ad4d691f19a29a7b783cdca5eeac5e34",
+                                                                             "evidence_bundle_hash":  "5cab32cd123b752defbd8d544c734ee71c483cb80744ef6b8cddf9ee683c7119",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.827304Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        },
+                                                        {
+                                                            "status":  200,
+                                                            "formal":  null,
+                                                            "product":  null,
+                                                            "execution":  null,
+                                                            "authority":  null,
+                                                            "artifact":  {
+                                                                             "id":  "art-0000005200",
+                                                                             "domain":  "tbdhousing",
+                                                                             "tenant":  "tbdhousing-broker",
+                                                                             "principal":  "tbdhousing-broker-user",
+                                                                             "outcome":  "permitted-no-effect",
+                                                                             "gate1_hash":  "fcffcefbfc30bf4027f109885e127941e92cfa6f16e39c75131f41d214e361b7",
+                                                                             "gate2_hash":  "b3952976a80fa984ecbe0ef0a34c24eaaaa1c452c64cc4089ef6eb20502ccb45",
+                                                                             "result_hash":  "5b86bb3d6dc237dbac0f5ead4988b6dcbb1fe538bdb05e16e3b33734112ab193",
+                                                                             "previous_hash":  "eaaf985a6793f44a31d36c698e4576e1ad4d691f19a29a7b783cdca5eeac5e34",
+                                                                             "artifact_hash":  "60101a707c9eb5ca9264a27bc51b06295f78db9b9e3c44095d3f3afceae58514",
+                                                                             "evidence_bundle_hash":  "5cab32cd123b752defbd8d544c734ee71c483cb80744ef6b8cddf9ee683c7119",
+                                                                             "actuation":  null,
+                                                                             "sealed_at":  "2026-08-29T17:24:43.845421Z"
+                                                                         },
+                                                            "title":  null,
+                                                            "rule_id":  null,
+                                                            "reason":  null,
+                                                            "recognized":  null
+                                                        }
+                                                    ]
+                                   }
+                               ]
+               },
+    "security":  {
+                     "chain_verification":  {
+                                                "ok":  true,
+                                                "status":  200,
+                                                "verified":  true,
+                                                "checked":  594,
+                                                "broken_at":  null,
+                                                "problems":  [
+
+                                                             ],
+                                                "stored_tip":  "8f6c35eda7c9064924bf53ae4f58fb0fe63a40ef47cd0a8bac0df752074511b6",
+                                                "computed_tip":  "8f6c35eda7c9064924bf53ae4f58fb0fe63a40ef47cd0a8bac0df752074511b6",
+                                                "snapshot_hash":  "f0aad3a58701f676cb0bb2d2a73de0412851e530713a2ef42c9ccb331598f12f",
+                                                "artifact":  {
+                                                                 "id":  "art-0000015590",
+                                                                 "gate1_hash":  "5165c77a339017f6766ba0d9d154554a8879bc31cd6d978a544fbb145032b22c",
+                                                                 "gate2_hash":  "91191acae35f0e9f55341cb14e9aab9ea64056d8317a7c9f21c1b065d264dbc1",
+                                                                 "result_hash":  "0b2f0335403ac76f14621f6d08991d1e79910f68e1b9b8c50a1a57b9dd6b1491",
+                                                                 "artifact_hash":  "8cd0b8a78c93f59469daa21dae6a18d89c9a8c4d8ee70d1a975f6aa076ac9ae5"
+                                                             }
+                                            },
+                     "idempotency":  {
+                                         "ok":  true,
+                                         "key":  "arena-idempotency-d9eb041314254518944d02eca4935940",
+                                         "first_status":  200,
+                                         "replay_status":  409,
+                                         "replay_outcome":  "idempotent-ledger-read-already-resolved",
+                                         "same_artifact":  true,
+                                         "first_artifact":  {
+                                                                "id":  "art-0000015620",
+                                                                "artifact_hash":  "16adb9af39e39574062c64396d2e00ba38dd9cfb4e08da90989b3147e51ef3a3"
+                                                            },
+                                         "replay_artifact":  {
+                                                                 "id":  "art-0000015620",
+                                                                 "artifact_hash":  "16adb9af39e39574062c64396d2e00ba38dd9cfb4e08da90989b3147e51ef3a3"
+                                                             }
+                                     }
+                 },
+    "tenki":  {
+                  "status":  "LIVE",
+                  "live":  true,
+                  "platform":  "Tenki",
+                  "snapshot_id":  "07fd77b8-7caf-400e-8e8e-42eb16396098",
+                  "authority":  false,
+                  "tls_verification_relaxed":  false,
+                  "plan":  {
+                               "contract":  "oasse.tenki.deterministic-replica-swarm.v1",
+                               "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                               "requested_effect":  "parent-shield.navigation",
+                               "principal":  "agent-b",
+                               "replica_width":  4,
+                               "authority":  false,
+                               "plan_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4",
+                               "workers":  [
+                                               {
+                                                   "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-00",
+                                                   "replica_index":  0,
+                                                   "worker_role":  "independent-goi-derived-claim-replica",
+                                                   "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                   "authority":  false
+                                               },
+                                               {
+                                                   "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-01",
+                                                   "replica_index":  1,
+                                                   "worker_role":  "independent-goi-derived-claim-replica",
+                                                   "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                   "authority":  false
+                                               },
+                                               {
+                                                   "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-02",
+                                                   "replica_index":  2,
+                                                   "worker_role":  "independent-goi-derived-claim-replica",
+                                                   "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                   "authority":  false
+                                               },
+                                               {
+                                                   "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-03",
+                                                   "replica_index":  3,
+                                                   "worker_role":  "independent-goi-derived-claim-replica",
+                                                   "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                   "authority":  false
+                                               }
+                                           ]
+                           },
+                  "configured_endpoint_count":  4,
+                  "workers":  [
+                                  {
+                                      "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-00",
+                                      "replica_index":  0,
+                                      "worker_role":  "independent-goi-derived-claim-replica",
+                                      "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                      "authority":  false,
+                                      "status":  "COMPLETED",
+                                      "live":  true,
+                                      "endpoint_configured":  true,
+                                      "tls_verified":  true,
+                                      "claim":  {
+                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "authority":  false,
+                                                    "capacity_bits_per_s":  320.0,
+                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                    "compute_plane":  "tenki",
+                                                    "kind":  "goi_l0_boundary_capacity",
+                                                    "omega_res":  256,
+                                                    "principal":  "agent-b",
+                                                    "requested_effect":  "parent-shield.navigation",
+                                                    "role":  "derived_claim_only",
+                                                    "tau_ms":  25.0
+                                                },
+                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                      "error":  null,
+                                      "elapsed_ms":  159.67
+                                  },
+                                  {
+                                      "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-01",
+                                      "replica_index":  1,
+                                      "worker_role":  "independent-goi-derived-claim-replica",
+                                      "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                      "authority":  false,
+                                      "status":  "COMPLETED",
+                                      "live":  true,
+                                      "endpoint_configured":  true,
+                                      "tls_verified":  true,
+                                      "claim":  {
+                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "authority":  false,
+                                                    "capacity_bits_per_s":  320.0,
+                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                    "compute_plane":  "tenki",
+                                                    "kind":  "goi_l0_boundary_capacity",
+                                                    "omega_res":  256,
+                                                    "principal":  "agent-b",
+                                                    "requested_effect":  "parent-shield.navigation",
+                                                    "role":  "derived_claim_only",
+                                                    "tau_ms":  25.0
+                                                },
+                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                      "error":  null,
+                                      "elapsed_ms":  180.74
+                                  },
+                                  {
+                                      "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-02",
+                                      "replica_index":  2,
+                                      "worker_role":  "independent-goi-derived-claim-replica",
+                                      "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                      "authority":  false,
+                                      "status":  "COMPLETED",
+                                      "live":  true,
+                                      "endpoint_configured":  true,
+                                      "tls_verified":  true,
+                                      "claim":  {
+                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "authority":  false,
+                                                    "capacity_bits_per_s":  320.0,
+                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                    "compute_plane":  "tenki",
+                                                    "kind":  "goi_l0_boundary_capacity",
+                                                    "omega_res":  256,
+                                                    "principal":  "agent-b",
+                                                    "requested_effect":  "parent-shield.navigation",
+                                                    "role":  "derived_claim_only",
+                                                    "tau_ms":  25.0
+                                                },
+                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                      "error":  null,
+                                      "elapsed_ms":  172.45
+                                  },
+                                  {
+                                      "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-03",
+                                      "replica_index":  3,
+                                      "worker_role":  "independent-goi-derived-claim-replica",
+                                      "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                      "authority":  false,
+                                      "status":  "COMPLETED",
+                                      "live":  true,
+                                      "endpoint_configured":  true,
+                                      "tls_verified":  true,
+                                      "claim":  {
+                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                    "authority":  false,
+                                                    "capacity_bits_per_s":  320.0,
+                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                    "compute_plane":  "tenki",
+                                                    "kind":  "goi_l0_boundary_capacity",
+                                                    "omega_res":  256,
+                                                    "principal":  "agent-b",
+                                                    "requested_effect":  "parent-shield.navigation",
+                                                    "role":  "derived_claim_only",
+                                                    "tau_ms":  25.0
+                                                },
+                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                      "error":  null,
+                                      "elapsed_ms":  172.98
+                                  }
+                              ],
+                  "claim":  {
+                                "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                "authority":  false,
+                                "capacity_bits_per_s":  320.0,
+                                "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                "compute_plane":  "tenki",
+                                "kind":  "goi_l0_boundary_capacity",
+                                "omega_res":  256,
+                                "principal":  "agent-b",
+                                "requested_effect":  "parent-shield.navigation",
+                                "role":  "derived_claim_only",
+                                "tau_ms":  25.0
+                            },
+                  "aggregate":  {
+                                    "replica_width":  4,
+                                    "completed":  4,
+                                    "failed":  0,
+                                    "pending":  0,
+                                    "consensus":  true,
+                                    "consensus_claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                    "authority":  false,
+                                    "state_hash":  "0db298510e813f74b724d2030394189767c904495b7edc1050344ebda667cdb9"
+                                },
+                  "elapsed_ms":  182.04,
+                  "reason":  null
+              },
+    "deterministic_steward":  {
+                                  "status":  "LIVE",
+                                  "implemented":  true,
+                                  "swarm_native":  true,
+                                  "authority":  false,
+                                  "contract":  "oasse.deterministic-steward.v2",
+                                  "plan":  {
+                                               "contract":  "oasse.deterministic-steward.v2",
+                                               "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                               "requested_effect":  "parent-shield.navigation",
+                                               "principal":  "agent-b",
+                                               "tenki_replica_width":  4,
+                                               "authority":  false,
+                                               "plan_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6",
+                                               "workers":  [
+                                                               {
+                                                                   "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:cotal-coordination",
+                                                                   "role":  "authenticated-coordination-and-handoff",
+                                                                   "plane":  "cotal",
+                                                                   "authority":  false
+                                                               },
+                                                               {
+                                                                   "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-00",
+                                                                   "role":  "independent-goi-derived-claim-replica",
+                                                                   "plane":  "tenki",
+                                                                   "replica_index":  0,
+                                                                   "authority":  false
+                                                               },
+                                                               {
+                                                                   "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-01",
+                                                                   "role":  "independent-goi-derived-claim-replica",
+                                                                   "plane":  "tenki",
+                                                                   "replica_index":  1,
+                                                                   "authority":  false
+                                                               },
+                                                               {
+                                                                   "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-02",
+                                                                   "role":  "independent-goi-derived-claim-replica",
+                                                                   "plane":  "tenki",
+                                                                   "replica_index":  2,
+                                                                   "authority":  false
+                                                               },
+                                                               {
+                                                                   "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-03",
+                                                                   "role":  "independent-goi-derived-claim-replica",
+                                                                   "plane":  "tenki",
+                                                                   "replica_index":  3,
+                                                                   "authority":  false
+                                                               }
+                                                           ],
+                                               "tenki_plan_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4"
+                                           },
+                                  "workers":  [
+                                                  {
+                                                      "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:cotal-coordination",
+                                                      "role":  "authenticated-coordination-and-handoff",
+                                                      "plane":  "cotal",
+                                                      "status":  "COMPLETED",
+                                                      "live":  true,
+                                                      "authority":  false,
+                                                      "error":  null,
+                                                      "output":  {
+                                                                     "ok":  true,
+                                                                     "swarm_live":  true,
+                                                                     "steward_assignment":  {
+                                                                                                "agent":  "steward",
+                                                                                                "mode":  "msg",
+                                                                                                "target":  "swarm",
+                                                                                                "allowed":  true,
+                                                                                                "returncode":  0,
+                                                                                                "detail":  ""
+                                                                                            },
+                                                                     "agent_a_handoff":  {
+                                                                                             "agent":  "agent-a",
+                                                                                             "mode":  "msg",
+                                                                                             "target":  "artifacts",
+                                                                                             "allowed":  true,
+                                                                                             "returncode":  0,
+                                                                                             "detail":  ""
+                                                                                         },
+                                                                     "agent_a_execution":  {
+                                                                                               "agent":  "agent-a",
+                                                                                               "mode":  "msg",
+                                                                                               "target":  "execution",
+                                                                                               "allowed":  false,
+                                                                                               "returncode":  1,
+                                                                                               "detail":  ""
+                                                                                           },
+                                                                     "agent_b_execution":  {
+                                                                                               "agent":  "agent-b",
+                                                                                               "mode":  "msg",
+                                                                                               "target":  "execution",
+                                                                                               "allowed":  true,
+                                                                                               "returncode":  0,
+                                                                                               "detail":  ""
+                                                                                           }
+                                                                 },
+                                                      "elapsed_ms":  10041.28,
+                                                      "result_hash":  "121763a103f15fe391b4c83b51b7c29ba56cad1d45705eab98b5513574a8c1af"
+                                                  },
+                                                  {
+                                                      "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-00",
+                                                      "role":  "independent-goi-derived-claim-replica",
+                                                      "plane":  "tenki",
+                                                      "replica_index":  0,
+                                                      "status":  "COMPLETED",
+                                                      "live":  true,
+                                                      "authority":  false,
+                                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                      "error":  null,
+                                                      "elapsed_ms":  161.9,
+                                                      "claim":  {
+                                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "authority":  false,
+                                                                    "capacity_bits_per_s":  320.0,
+                                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                    "compute_plane":  "tenki",
+                                                                    "kind":  "goi_l0_boundary_capacity",
+                                                                    "omega_res":  256,
+                                                                    "principal":  "agent-b",
+                                                                    "requested_effect":  "parent-shield.navigation",
+                                                                    "role":  "derived_claim_only",
+                                                                    "tau_ms":  25.0
+                                                                },
+                                                      "result_hash":  "00e9695240a6d181fab6ac5c952ab5f412a7ac71c926d2fe7f807adef07fb904"
+                                                  },
+                                                  {
+                                                      "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-01",
+                                                      "role":  "independent-goi-derived-claim-replica",
+                                                      "plane":  "tenki",
+                                                      "replica_index":  1,
+                                                      "status":  "COMPLETED",
+                                                      "live":  true,
+                                                      "authority":  false,
+                                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                      "error":  null,
+                                                      "elapsed_ms":  164.46,
+                                                      "claim":  {
+                                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "authority":  false,
+                                                                    "capacity_bits_per_s":  320.0,
+                                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                    "compute_plane":  "tenki",
+                                                                    "kind":  "goi_l0_boundary_capacity",
+                                                                    "omega_res":  256,
+                                                                    "principal":  "agent-b",
+                                                                    "requested_effect":  "parent-shield.navigation",
+                                                                    "role":  "derived_claim_only",
+                                                                    "tau_ms":  25.0
+                                                                },
+                                                      "result_hash":  "dd5da2e4f362d52b65dd2aef9b17c766c6ca315b399b18451d7d6d89cf8da3bb"
+                                                  },
+                                                  {
+                                                      "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-02",
+                                                      "role":  "independent-goi-derived-claim-replica",
+                                                      "plane":  "tenki",
+                                                      "replica_index":  2,
+                                                      "status":  "COMPLETED",
+                                                      "live":  true,
+                                                      "authority":  false,
+                                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                      "error":  null,
+                                                      "elapsed_ms":  161.92,
+                                                      "claim":  {
+                                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "authority":  false,
+                                                                    "capacity_bits_per_s":  320.0,
+                                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                    "compute_plane":  "tenki",
+                                                                    "kind":  "goi_l0_boundary_capacity",
+                                                                    "omega_res":  256,
+                                                                    "principal":  "agent-b",
+                                                                    "requested_effect":  "parent-shield.navigation",
+                                                                    "role":  "derived_claim_only",
+                                                                    "tau_ms":  25.0
+                                                                },
+                                                      "result_hash":  "cbccc64c05b68b4e2c649fb0d8cf58fa964b06578f1a38d17f00d361f38fe2e6"
+                                                  },
+                                                  {
+                                                      "worker_id":  "034a18dbce60d5e57f566cfa25dc5c47d0182994e353a7e2e8eb22de4dedaed6:tenki-replica-03",
+                                                      "role":  "independent-goi-derived-claim-replica",
+                                                      "plane":  "tenki",
+                                                      "replica_index":  3,
+                                                      "status":  "COMPLETED",
+                                                      "live":  true,
+                                                      "authority":  false,
+                                                      "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                      "error":  null,
+                                                      "elapsed_ms":  163.93,
+                                                      "claim":  {
+                                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "authority":  false,
+                                                                    "capacity_bits_per_s":  320.0,
+                                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                    "compute_plane":  "tenki",
+                                                                    "kind":  "goi_l0_boundary_capacity",
+                                                                    "omega_res":  256,
+                                                                    "principal":  "agent-b",
+                                                                    "requested_effect":  "parent-shield.navigation",
+                                                                    "role":  "derived_claim_only",
+                                                                    "tau_ms":  25.0
+                                                                },
+                                                      "result_hash":  "c0d50acc7893f1ee661b2f1c491dc2df0bf357f2c5bf2db09e60d92b74ffff46"
+                                                  }
+                                              ],
+                                  "worker_count":  5,
+                                  "planned_worker_count":  5,
+                                  "live_workers":  5,
+                                  "failed_workers":  0,
+                                  "pending_workers":  0,
+                                  "failure_isolated":  false,
+                                  "tenki_swarm":  {
+                                                      "status":  "LIVE",
+                                                      "live":  true,
+                                                      "platform":  "Tenki",
+                                                      "snapshot_id":  "07fd77b8-7caf-400e-8e8e-42eb16396098",
+                                                      "authority":  false,
+                                                      "tls_verification_relaxed":  false,
+                                                      "plan":  {
+                                                                   "contract":  "oasse.tenki.deterministic-replica-swarm.v1",
+                                                                   "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                   "requested_effect":  "parent-shield.navigation",
+                                                                   "principal":  "agent-b",
+                                                                   "replica_width":  4,
+                                                                   "authority":  false,
+                                                                   "plan_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4",
+                                                                   "workers":  [
+                                                                                   {
+                                                                                       "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-00",
+                                                                                       "replica_index":  0,
+                                                                                       "worker_role":  "independent-goi-derived-claim-replica",
+                                                                                       "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                       "authority":  false
+                                                                                   },
+                                                                                   {
+                                                                                       "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-01",
+                                                                                       "replica_index":  1,
+                                                                                       "worker_role":  "independent-goi-derived-claim-replica",
+                                                                                       "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                       "authority":  false
+                                                                                   },
+                                                                                   {
+                                                                                       "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-02",
+                                                                                       "replica_index":  2,
+                                                                                       "worker_role":  "independent-goi-derived-claim-replica",
+                                                                                       "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                       "authority":  false
+                                                                                   },
+                                                                                   {
+                                                                                       "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-03",
+                                                                                       "replica_index":  3,
+                                                                                       "worker_role":  "independent-goi-derived-claim-replica",
+                                                                                       "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                       "authority":  false
+                                                                                   }
+                                                                               ]
+                                                               },
+                                                      "configured_endpoint_count":  4,
+                                                      "workers":  [
+                                                                      {
+                                                                          "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-00",
+                                                                          "replica_index":  0,
+                                                                          "worker_role":  "independent-goi-derived-claim-replica",
+                                                                          "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                          "authority":  false,
+                                                                          "status":  "COMPLETED",
+                                                                          "live":  true,
+                                                                          "endpoint_configured":  true,
+                                                                          "tls_verified":  true,
+                                                                          "claim":  {
+                                                                                        "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "authority":  false,
+                                                                                        "capacity_bits_per_s":  320.0,
+                                                                                        "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                                        "compute_plane":  "tenki",
+                                                                                        "kind":  "goi_l0_boundary_capacity",
+                                                                                        "omega_res":  256,
+                                                                                        "principal":  "agent-b",
+                                                                                        "requested_effect":  "parent-shield.navigation",
+                                                                                        "role":  "derived_claim_only",
+                                                                                        "tau_ms":  25.0
+                                                                                    },
+                                                                          "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                          "error":  null,
+                                                                          "elapsed_ms":  161.9
+                                                                      },
+                                                                      {
+                                                                          "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-01",
+                                                                          "replica_index":  1,
+                                                                          "worker_role":  "independent-goi-derived-claim-replica",
+                                                                          "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                          "authority":  false,
+                                                                          "status":  "COMPLETED",
+                                                                          "live":  true,
+                                                                          "endpoint_configured":  true,
+                                                                          "tls_verified":  true,
+                                                                          "claim":  {
+                                                                                        "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "authority":  false,
+                                                                                        "capacity_bits_per_s":  320.0,
+                                                                                        "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                                        "compute_plane":  "tenki",
+                                                                                        "kind":  "goi_l0_boundary_capacity",
+                                                                                        "omega_res":  256,
+                                                                                        "principal":  "agent-b",
+                                                                                        "requested_effect":  "parent-shield.navigation",
+                                                                                        "role":  "derived_claim_only",
+                                                                                        "tau_ms":  25.0
+                                                                                    },
+                                                                          "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                          "error":  null,
+                                                                          "elapsed_ms":  164.46
+                                                                      },
+                                                                      {
+                                                                          "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-02",
+                                                                          "replica_index":  2,
+                                                                          "worker_role":  "independent-goi-derived-claim-replica",
+                                                                          "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                          "authority":  false,
+                                                                          "status":  "COMPLETED",
+                                                                          "live":  true,
+                                                                          "endpoint_configured":  true,
+                                                                          "tls_verified":  true,
+                                                                          "claim":  {
+                                                                                        "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "authority":  false,
+                                                                                        "capacity_bits_per_s":  320.0,
+                                                                                        "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                                        "compute_plane":  "tenki",
+                                                                                        "kind":  "goi_l0_boundary_capacity",
+                                                                                        "omega_res":  256,
+                                                                                        "principal":  "agent-b",
+                                                                                        "requested_effect":  "parent-shield.navigation",
+                                                                                        "role":  "derived_claim_only",
+                                                                                        "tau_ms":  25.0
+                                                                                    },
+                                                                          "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                          "error":  null,
+                                                                          "elapsed_ms":  161.92
+                                                                      },
+                                                                      {
+                                                                          "worker_id":  "4bdbd7e462f88c9d647a259f80f4a3bb711fa523f6d8db22703db02d127f2db4:tenki-replica-03",
+                                                                          "replica_index":  3,
+                                                                          "worker_role":  "independent-goi-derived-claim-replica",
+                                                                          "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                          "authority":  false,
+                                                                          "status":  "COMPLETED",
+                                                                          "live":  true,
+                                                                          "endpoint_configured":  true,
+                                                                          "tls_verified":  true,
+                                                                          "claim":  {
+                                                                                        "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                                        "authority":  false,
+                                                                                        "capacity_bits_per_s":  320.0,
+                                                                                        "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                                        "compute_plane":  "tenki",
+                                                                                        "kind":  "goi_l0_boundary_capacity",
+                                                                                        "omega_res":  256,
+                                                                                        "principal":  "agent-b",
+                                                                                        "requested_effect":  "parent-shield.navigation",
+                                                                                        "role":  "derived_claim_only",
+                                                                                        "tau_ms":  25.0
+                                                                                    },
+                                                                          "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                          "error":  null,
+                                                                          "elapsed_ms":  163.93
+                                                                      }
+                                                                  ],
+                                                      "claim":  {
+                                                                    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "artifact_sha256":  "7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+                                                                    "authority":  false,
+                                                                    "capacity_bits_per_s":  320.0,
+                                                                    "claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                    "compute_plane":  "tenki",
+                                                                    "kind":  "goi_l0_boundary_capacity",
+                                                                    "omega_res":  256,
+                                                                    "principal":  "agent-b",
+                                                                    "requested_effect":  "parent-shield.navigation",
+                                                                    "role":  "derived_claim_only",
+                                                                    "tau_ms":  25.0
+                                                                },
+                                                      "aggregate":  {
+                                                                        "replica_width":  4,
+                                                                        "completed":  4,
+                                                                        "failed":  0,
+                                                                        "pending":  0,
+                                                                        "consensus":  true,
+                                                                        "consensus_claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                                                                        "authority":  false,
+                                                                        "state_hash":  "0db298510e813f74b724d2030394189767c904495b7edc1050344ebda667cdb9"
+                                                                    },
+                                                      "elapsed_ms":  168.77,
+                                                      "reason":  null
+                                                  },
+                                  "tenki_consensus":  true,
+                                  "state_hash":  "3fed6552869c141090a20e92bada971636840cc1e44876322b5a59a46ed48c99",
+                                  "elapsed_ms":  10041.92,
+                                  "gatekeeper_authority_required_for_effects":  true
+                              }
+}

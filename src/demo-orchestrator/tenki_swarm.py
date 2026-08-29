@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import json
 import os
+import ssl
 import time
 import urllib.error
 import urllib.request
@@ -135,6 +136,23 @@ def _validate_claim(plan, payload):
     return claim
 
 
+def _tls_relaxed():
+    """Opt-in escape hatch for networks that TLS-intercept the sandbox domains.
+
+    Evidence-plane only: Tenki claims stay non-authoritative and are still
+    content-bound to the exact current artifact/effect/principal, so a
+    tampering intermediary cannot mint authority - it can only fail claims.
+    The relaxation is surfaced truthfully in every result.
+    """
+    return os.environ.get("TENKI_TLS_INSECURE", "") == "1"
+
+
+def _ssl_context():
+    if _tls_relaxed():
+        return ssl._create_unverified_context()
+    return None
+
+
 def _run_replica(spec, endpoint, plan, request_body):
     started = time.perf_counter()
     if not endpoint:
@@ -156,7 +174,9 @@ def _run_replica(spec, endpoint, plan, request_body):
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=TENKI_STEWARD_TIMEOUT) as response:
+        with urllib.request.urlopen(
+            request, timeout=TENKI_STEWARD_TIMEOUT, context=_ssl_context()
+        ) as response:
             raw = response.read().decode("utf-8", errors="replace")
         payload = json.loads(raw)
         claim = _validate_claim(plan, payload)
@@ -181,6 +201,7 @@ def _run_replica(spec, endpoint, plan, request_body):
         "live": live,
         "authority": False,
         "endpoint_configured": True,
+        "tls_verified": not _tls_relaxed(),
         "claim": claim,
         "claim_hash": claim.get("claim_hash") if claim else None,
         "error": error,
@@ -249,6 +270,7 @@ def run_tenki_swarm(artifact_ref, requested_effect, principal):
         "platform": "Tenki",
         "snapshot_id": TENKI_SNAPSHOT_ID,
         "authority": False,
+        "tls_verification_relaxed": _tls_relaxed(),
         "plan": plan,
         "configured_endpoint_count": len(endpoints),
         "workers": results,

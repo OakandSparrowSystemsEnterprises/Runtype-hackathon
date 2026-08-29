@@ -1,0 +1,65 @@
+﻿{
+    "state_id":  "2026-08-29-v2-fully-live",
+    "captured_at":  "2026-08-29T10:32:11.2935252-07:00",
+    "artifact_ref":  "sha256:7329b2008565f0901aab9f304c39f1a794699f45b8708be92ee377f7777a2f27",
+    "gatekeeper":  {
+                       "authority_source":  "Gatekeeper V2",
+                       "authority_transfer_from_artifact":  false,
+                       "formal":  "permit",
+                       "product":  "GREEN",
+                       "execution":  "allowed",
+                       "sealed_artifact_hash":  "caafd53cb9aae8a1c2ac323cdcacf4dc268aeff8645c0115d0fe62ce97b903b6"
+                   },
+    "cotal":  {
+                  "live":  true,
+                  "authority":  false
+              },
+    "tenki":  {
+                  "status":  "LIVE",
+                  "live":  true,
+                  "snapshot_id":  "07fd77b8-7caf-400e-8e8e-42eb16396098",
+                  "replica_width":  4,
+                  "completed":  4,
+                  "failed":  0,
+                  "pending":  0,
+                  "consensus":  true,
+                  "consensus_claim_hash":  "3b085dd5d9c0f80214b1e4dcc95fee571f3461a8845639131ee1985ec4dfbff4",
+                  "configured_endpoint_count":  4,
+                  "session_ids":  [
+                                      "01a0450d-dd65-7bfe-9aeb-459fa964b21e",
+                                      "01a0450d-e7d7-73a0-ab13-d5b46b91325d",
+                                      "01a04e54-e699-7b6d-ab6f-30d6e567459c",
+                                      "01a04e54-f3a4-77d9-89c2-3e16fab40b74"
+                                  ]
+              },
+    "deterministic_steward":  {
+                                  "status":  "LIVE",
+                                  "implemented":  true,
+                                  "contract":  "oasse.deterministic-steward.v2",
+                                  "live_workers":  5,
+                                  "failed_workers":  0,
+                                  "pending_workers":  0,
+                                  "tenki_consensus":  true,
+                                  "authority":  false
+                              },
+    "aisa_mitosis":  {
+                         "status":  "LIVE",
+                         "live":  true,
+                         "authority":  false,
+                         "aisa_live":  true,
+                         "aisa_result_sha256":  "70ba82bb299d14c20bc13afbc1d8e35fe51b2950c37da493e834b3bf21af5f0c",
+                         "mitosis_live":  true,
+                         "mitosis_office_id":  "7342af16-8a38-46f8-8023-4295264f71f2",
+                         "mitosis_write_status":  "ok",
+                         "mitosis_embedded":  true,
+                         "mitosis_universal_id":  "agent:memories:05c8e2f38ffa462cc2262e6a"
+                     },
+    "runtime":  {
+                    "tenki_derive_urls":  "https://2xvncx2ume2tnd2ntwn2dro7daycdsan.us.sb.tenki.sh/derive,https://xeidrawgz22ak5zlhy4mm57wuenmrcba.us.sb.tenki.sh/derive,https://ct7hj3a3cdbzf6oiltnwebw2rwyjwtps.us.sb.tenki.sh/derive,https://sm2sfotykb7pq7746ejgwahrrvw6ttqr.us.sb.tenki.sh/derive",
+                    "tenki_derive_url":  "https://2xvncx2ume2tnd2ntwn2dro7daycdsan.us.sb.tenki.sh/derive",
+                    "tenki_swarm_width":  "4",
+                    "mitosis_office_id":  "7342af16-8a38-46f8-8023-4295264f71f2",
+                    "gatekeeper_v2_source_root":  "C:\\Users\\ankou\\Downloads\\Gatekeeper-V2-NPU",
+                    "gate0_timeout_seconds":  "180"
+                }
+}
